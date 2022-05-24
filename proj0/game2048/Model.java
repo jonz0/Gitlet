@@ -114,11 +114,65 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        board.setViewingPerspective(side);
+
+        for (int col = 0; col < this.board.size(); col++) {
+            if (tiltColumn(col)) {
+                changed = true;
+            }
+        }
+
+        board.setViewingPerspective(Side.NORTH);
+
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    public boolean tiltColumn(int col) {
+        boolean x = shiftOver(col);
+        boolean y = merge(col);
+        shiftOver(col);
+
+        if (x || y) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean shiftOver(int col) {
+        boolean change_made = false;
+        for (int row = board.size() - 2; row >= 0; row -= 1) {
+            if (board.tile(col, row + 1) == null) {
+                Tile t = board.tile(col, row);
+                if (t != null) {
+                    board.move(col, row + 1, t);
+                    change_made = true;
+                    if (row + 2 < board.size()) {
+                        row += 2;
+                    } else {
+                        row++;
+                    }
+                }
+            }
+        }
+        return change_made;
+    }
+
+    public boolean merge(int col) {
+        boolean change_made = false;
+        for (int row = board.size() - 2; row >= 0; row--) {
+            if (board.tile(col, row + 1) == null || board.tile(col, row) == null);
+            else if (board.tile(col, row + 1).value() == board.tile(col, row).value()) {
+                Tile t = board.tile(col, row);
+                board.move(col, row + 1, t);
+                change_made = true;
+                score += t.value() * 2;
+            }
+        }
+        return change_made;
     }
 
     /** Checks if the game is over and sets the gameOver variable
@@ -137,7 +191,14 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for (int row = 0; row < b.size(); row += 1) {
+            for (int col = 0; col < b.size(); col += 1) {
+                if (b.tile(row, col) == null) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -147,7 +208,13 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for (int row = 0; row < b.size(); row += 1) {
+            for (int col = 0; col < b.size(); col += 1) {
+                if ((b.tile(row, col) != null) && b.tile(row, col).value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -158,7 +225,20 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+
+        for (int col = 0; col < b.size(); col += 2) {
+            for (int row = 0; row < b.size(); row += 1) {
+                if (col + 1 < b.size() && b.tile(col, row).value() == b.tile(col + 1, row).value()) {
+                    return true;
+                } else if (row + 1 < b.size() && b.tile(col, row).value() == b.tile(col, row + 1).value()) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
