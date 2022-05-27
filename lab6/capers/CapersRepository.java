@@ -20,7 +20,6 @@ public class CapersRepository {
     /** Main metadata folder. */
     static final File CAPERS_FOLDER = join(CWD, "capers"); // TODO Hint: look at the `join`
                                             //      function in Utils
-    static final File STORY_FOLDER = join(CWD, "story");
 
     /**
      * Does required filesystem operations to allow for persistence.
@@ -70,7 +69,7 @@ public class CapersRepository {
      */
     public static void celebrateBirthday(String name) {
         capers.Dog.fromFile(name).haveBirthday();
-        System.out.println("Happy birthday! Woof! Woof!");
+        System.out.println(capers.Dog.fromFile(name).toString());
         capers.Dog.fromFile(name).saveDog();
     }
 }
