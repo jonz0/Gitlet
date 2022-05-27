@@ -8,7 +8,7 @@ import static capers.CapersRepository.*;
 /** Represents a dog that can be serialized.
  * @author TODO
 */
-public class Dog { // TODO
+public class Dog implements Serializable { // TODO
 
     /** Folder that dogs live in. */
     static final File DOG_FOLDER = join(CAPERS_FOLDER, "dogs"); // TODO (hint: look at the `join`
@@ -40,8 +40,8 @@ public class Dog { // TODO
      * @return Dog read from file
      */
     public static Dog fromFile(String name) {
-        // TODO (hint: look at the Utils file)
-        return null;
+        File dog_file = join(DOG_FOLDER, name);
+        return readObject(dog_file, Dog.class);
     }
 
     /**
@@ -57,7 +57,9 @@ public class Dog { // TODO
      * Saves a dog to a file for future use.
      */
     public void saveDog() {
-        // TODO (hint: don't forget dog names are unique)
+        Dog doggy = new Dog(this.name, this.breed, this.age);
+        writeObject(DOG_FOLDER, doggy);
+
     }
 
     @Override
