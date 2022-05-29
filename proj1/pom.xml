@@ -11,6 +11,18 @@
         <relativePath>../library-sp21/javalib/masterpom.xml</relativePath>
     </parent>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>15</maven.compiler.source>
+        <maven.compiler.target>15</maven.compiler.target>
+    </properties>
+
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit-dep</artifactId>
+        <version>4.8.2</version>
+    </dependency>
+
     <groupId>CS61B</groupId>
     <artifactId>proj1</artifactId>
     <version>1.0-SNAPSHOT</version>
