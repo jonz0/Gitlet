@@ -75,7 +75,7 @@ public class ArrayDequeTest {
         a1.removeFirst();
         a1.removeFirst();
 
-        assertEquals(3, (int) a1.front());
+        assertEquals(3, (int) a1.get(0));
         assertEquals(122, (int) a1.back());
     }
 
