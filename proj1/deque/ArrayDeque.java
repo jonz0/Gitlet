@@ -27,6 +27,12 @@ public class ArrayDeque<T> implements Deque<T> {
         }
     }
 
+    private void removeUtilization() {
+        if(size - 1 < items.length * 0.25 && size - 1 > 100) {
+            resize(items.length / 3);
+        }
+    }
+
     public void addLast(T n) {
         utilizationRule();
 
@@ -62,7 +68,7 @@ public class ArrayDeque<T> implements Deque<T> {
             return null;
         }
 
-        utilizationRule();
+        removeUtilization();
 
         T temp = items[size - 1];
         items[size - 1] = null;
@@ -86,7 +92,7 @@ public class ArrayDeque<T> implements Deque<T> {
             return null;
         }
 
-        utilizationRule();
+        removeUtilization();
 
         T[] tempArray = (T[]) new Object[size];
         T tempObj = items[0];

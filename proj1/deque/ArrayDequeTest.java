@@ -61,6 +61,28 @@ public class ArrayDequeTest {
         System.out.println("s1 time: " + times[0] + " ... s2 time: " + times[1]);
     }
 
+    @Test
+    public void fillRefill() {
+        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+
+        for(int i = 0; i < 2000; i++) {
+            a1.addLast(i);
+        }
+
+        assertEquals(a1.size(), 2000);
+
+        for(int i = 0; i < 2000; i++) {
+            a1.removeFirst();
+        }
+
+        for(int i = 0; i < 2000; i++) {
+            a1.addLast(i);
+        }
+
+        assertEquals(a1.size(), 2000);
+        assertEquals(0, (int) a1.removeFirst());
+    }
+
 //    @Test
 //    public void circularTest() {
 //        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
