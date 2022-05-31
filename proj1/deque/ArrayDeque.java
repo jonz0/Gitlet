@@ -5,21 +5,23 @@ import java.util.Iterator;
 public class ArrayDeque<T> implements Deque<T> {
     private T[] items;
     private int size;
-    private T front = null;
-    private T back = null;
+    public T front;
+    public T back;
 
     public ArrayDeque() {
         items = (T[]) new Object[8];
         size = 0;
+        front = null;
+        back = null;
     }
 
-    public void resize(int capacity) {
+    private void resize(int capacity) {
         T[] temp = (T[]) new Object[capacity];
         System.arraycopy(items, 0, temp, 0, size);
         items = temp;
     }
 
-    public void utilizationRule() {
+    private void utilizationRule() {
         if (size == items.length) {
             resize(items.length * 2);
         }
@@ -105,7 +107,7 @@ public class ArrayDeque<T> implements Deque<T> {
         return tempObj;
     }
 
-    public int length() {
+    private int length() {
         return items.length;
     }
 
@@ -122,14 +124,6 @@ public class ArrayDeque<T> implements Deque<T> {
             System.out.print(items[i] + " ");
         }
         System.out.println();
-    }
-
-    public T front() {
-        return front;
-    }
-
-    public T back() {
-        return back;
     }
 
     public Iterator<T> iterator() {
@@ -173,5 +167,4 @@ public class ArrayDeque<T> implements Deque<T> {
 
         return true;
     }
-
 }

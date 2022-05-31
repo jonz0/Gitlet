@@ -17,9 +17,9 @@ public class LinkedListDeque<T> implements Deque<T> {
         }
     }
 
-    Node sentinel;
-    Node first, last;
-    public int size;
+    private Node sentinel;
+    private Node first, last;
+    private int size;
 
     public LinkedListDeque() {
         sentinel = new Node(null);
@@ -162,6 +162,7 @@ public class LinkedListDeque<T> implements Deque<T> {
 
     private class LinkedListIterator implements Iterator<T> {
         private int index;
+
         public LinkedListIterator() {
             index = 0;
         }

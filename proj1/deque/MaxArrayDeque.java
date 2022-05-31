@@ -10,12 +10,12 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
         m = c;
     }
 
-    public MaxArrayDeque() {
-        super();
-        m = new MaxComparator();
-    }
-    
-    private class MaxComparator implements Comparator<T> {
+//    public MaxArrayDeque() {
+//        super();
+//        m = new MaxComparator();
+//    }
+
+    public class MaxComparator implements Comparator<T> {
 
         @Override
         public int compare(Object o1, Object o2) {

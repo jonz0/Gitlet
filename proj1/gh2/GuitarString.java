@@ -48,12 +48,12 @@ public class GuitarString {
      */
     public void tic() {
         Double newDouble = buffer.removeFirst();
-        Double next = buffer.front();
+        Double next = buffer.front;
         buffer.addLast((next + newDouble) / 2 * DECAY);
     }
 
     /* Return the double at the front of the buffer. */
     public double sample() {
-        return buffer.front();
+        return buffer.front;
     }
 }
