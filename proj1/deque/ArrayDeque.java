@@ -5,8 +5,8 @@ import java.util.Iterator;
 public class ArrayDeque<T> implements Deque<T> {
     private T[] items;
     private int size;
-    public T front;
-    public T back;
+    private T front;
+    private T back;
 
     public ArrayDeque() {
         items = (T[]) new Object[8];
@@ -22,7 +22,7 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     private void utilizationRule() {
-        if (size == items.length) {
+        if (size + 1 == items.length) {
             resize(items.length * 2);
         }
     }

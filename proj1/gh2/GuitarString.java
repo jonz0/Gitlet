@@ -1,7 +1,6 @@
 package gh2;
 
 import deque.ArrayDeque;
-import deque.Deque;
 import java.util.Random;
 
 //Note: This file will not compile until you complete the Deque implementations
@@ -48,12 +47,12 @@ public class GuitarString {
      */
     public void tic() {
         Double newDouble = buffer.removeFirst();
-        Double next = buffer.front;
+        Double next = buffer.get(0);
         buffer.addLast((next + newDouble) / 2 * DECAY);
     }
 
     /* Return the double at the front of the buffer. */
     public double sample() {
-        return buffer.front;
+        return buffer.get(0);
     }
 }

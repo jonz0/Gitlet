@@ -23,6 +23,23 @@ public class ArrayDequeTest {
     }
 
     @Test
+    public void removeTest() {
+        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+
+        assertNull(a1.removeFirst());
+
+        a1.addLast(1);
+        assertEquals(1, (int) a1.removeFirst());
+
+        for(int i = 0; i < 2000; i++) {
+            a1.addLast(i);
+        }
+
+        assertEquals(0, (int) a1.removeFirst());
+        assertEquals(1999, (int) a1.removeLast());
+    }
+
+    @Test
     public void timingTest() {
         ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
         ArrayDeque<Integer> a2 = new ArrayDeque<Integer>();
@@ -44,49 +61,49 @@ public class ArrayDequeTest {
         System.out.println("s1 time: " + times[0] + " ... s2 time: " + times[1]);
     }
 
-    @Test
-    public void circularTest() {
-        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
-
-        for (int i = 0; i < 125; i++) {
-            a1.addLast(i);
-        }
-
-        a1.removeLast();
-        a1.removeLast();
-        a1.removeFirst();
-        a1.removeFirst();
-        a1.removeFirst();
-
-        assertEquals(3, (int) a1.get(0));
-        assertEquals(122, (int) a1.back);
-    }
-
-    @Test
-    public void circularTestNull() {
-        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
-
-        for (int i = 0; i < 1; i++) {
-            a1.addLast(i);
-        }
-
-        a1.removeLast();
-
-        assertEquals(null, a1.front);
-        assertEquals(null, a1.back);
-    }
-
-    @Test
-    public void circularTestFirst() {
-        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
-
-        for (int i = 0; i < 2; i++) {
-            a1.addLast(i);
-        }
-
-        a1.removeLast();
-
-        assertEquals(0, (int) a1.front);
-        assertEquals(0, (int) a1.back);
-    }
+//    @Test
+//    public void circularTest() {
+//        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+//
+//        for (int i = 0; i < 125; i++) {
+//            a1.addLast(i);
+//        }
+//
+//        a1.removeLast();
+//        a1.removeLast();
+//        a1.removeFirst();
+//        a1.removeFirst();
+//        a1.removeFirst();
+//
+//        assertEquals(3, (int) a1.get(0));
+//        assertEquals(122, (int) a1.back);
+//    }
+//
+//    @Test
+//    public void circularTestNull() {
+//        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+//
+//        for (int i = 0; i < 1; i++) {
+//            a1.addLast(i);
+//        }
+//
+//        a1.removeLast();
+//
+//        assertEquals(null, a1.front);
+//        assertEquals(null, a1.back);
+//    }
+//
+//    @Test
+//    public void circularTestFirst() {
+//        ArrayDeque<Integer> a1 = new ArrayDeque<Integer>();
+//
+//        for (int i = 0; i < 2; i++) {
+//            a1.addLast(i);
+//        }
+//
+//        a1.removeLast();
+//
+//        assertEquals(0, (int) a1.front);
+//        assertEquals(0, (int) a1.back);
+//    }
 }
