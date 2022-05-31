@@ -15,7 +15,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
 //        m = new MaxComparator();
 //    }
 
-    public class MaxComparator implements Comparator<T> {
+    private class MaxComparator implements Comparator<T> {
 
         @Override
         public int compare(Object o1, Object o2) {

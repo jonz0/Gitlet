@@ -28,7 +28,7 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     private void removeUtilization() {
-        if(size - 1 < items.length * 0.25 && size - 1 > 100) {
+        if (size - 1 < items.length * 0.25 && size - 1 > 100) {
             resize(items.length / 3);
         }
     }
@@ -40,7 +40,7 @@ public class ArrayDeque<T> implements Deque<T> {
         items[size] = n;
         size += 1;
 
-        if(size == 1) {
+        if (size == 1) {
             front = n;
         }
     }
@@ -132,7 +132,7 @@ public class ArrayDeque<T> implements Deque<T> {
         System.out.println();
     }
 
-    public Iterator<T> iterator() {
+    private Iterator<T> iterator() {
         return new ArrayDequeIterator();
     }
 
@@ -161,12 +161,12 @@ public class ArrayDeque<T> implements Deque<T> {
         }
 
         ArrayDeque<T> other = (ArrayDeque<T>) o;
-        if(other.size() != this.size()) {
+        if (other.size() != this.size()) {
             return false;
         }
 
         for (int i = 0; i < size(); i++) {
-            if(other.items[i] != this.items[i]) {
+            if (other.items[i] != this.items[i]) {
                 return false;
             }
         }

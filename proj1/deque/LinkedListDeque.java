@@ -10,7 +10,7 @@ public class LinkedListDeque<T> implements Deque<T> {
         Node next;
         Node prev;
 
-        public Node(T item) {
+        private Node(T item) {
             this.item = item;
             this.next = null;
             this.prev = null;
@@ -32,7 +32,7 @@ public class LinkedListDeque<T> implements Deque<T> {
         Node newNode = new Node(item);
         newNode.next = sentinel;
 
-        if (sentinel.next == null){
+        if (sentinel.next == null) {
             // if the linked list is empty
             sentinel.next = sentinel.prev = newNode;
             first = last = newNode;
@@ -51,7 +51,7 @@ public class LinkedListDeque<T> implements Deque<T> {
         Node newNode = new Node(item);
         newNode.prev = sentinel;
 
-        if (sentinel.next == null){
+        if (sentinel.next == null) {
             // if the linked list is empty
             sentinel.next = sentinel.prev = newNode;
             first = last = newNode;
@@ -163,7 +163,7 @@ public class LinkedListDeque<T> implements Deque<T> {
     private class LinkedListIterator implements Iterator<T> {
         private int index;
 
-        public LinkedListIterator() {
+        private LinkedListIterator() {
             index = 0;
         }
 
@@ -179,7 +179,9 @@ public class LinkedListDeque<T> implements Deque<T> {
     }
 
     public boolean equals(Object o) {
-        if (this == o) { return true; }
+        if (this == o) {
+            return true;
+        }
 
         if (o == null || o.getClass() == this.getClass()) {
             return false;
