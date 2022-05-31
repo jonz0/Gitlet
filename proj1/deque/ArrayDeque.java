@@ -1,6 +1,8 @@
 package deque;
 
-public class ArrayDeque<T> implements Deque<T>{
+import java.util.Iterator;
+
+public class ArrayDeque<T> implements Deque<T> {
     private T[] items;
     private int size;
     private T front = null;
@@ -84,10 +86,10 @@ public class ArrayDeque<T> implements Deque<T>{
 
         utilizationRule();
 
-        T[] temp_array = (T[]) new Object[size];
-        T temp_obj = items[0];
-        System.arraycopy(items, 1, temp_array, 0, size - 1);
-        items = temp_array;
+        T[] tempArray = (T[]) new Object[size];
+        T tempObj = items[0];
+        System.arraycopy(items, 1, tempArray, 0, size - 1);
+        items = tempArray;
         size -= 1;
 
         if (size == 0) {
@@ -100,16 +102,20 @@ public class ArrayDeque<T> implements Deque<T>{
             front = items[0];
         }
 
-        return temp_obj;
+        return tempObj;
     }
 
     public int length() {
         return items.length;
     }
 
-    public T get(int index) { return items[index]; }
+    public T get(int index) {
+        return items[index];
+    }
 
-    public int size() { return size; }
+    public int size() {
+        return size;
+    }
 
     public void printDeque() {
         for (int i = 0; i < items.length; i++) {
@@ -118,7 +124,54 @@ public class ArrayDeque<T> implements Deque<T>{
         System.out.println();
     }
 
-    public T front() { return front; }
+    public T front() {
+        return front;
+    }
 
-    public T back() { return back; }
+    public T back() {
+        return back;
+    }
+
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int index;
+        public ArrayDequeIterator() {
+            index = 0;
+        }
+
+        public boolean hasNext() {
+            return index < size();
+        }
+
+        public T next() {
+            T returned = items[index];
+            index += 1;
+            return returned;
+        }
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+
+        if (o == null || o.getClass() == this.getClass()) {
+            return false;
+        }
+
+        ArrayDeque<T> other = (ArrayDeque<T>) o;
+        if(other.size() != this.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < size(); i++) {
+            if(other.items[i] != this.items[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 }
