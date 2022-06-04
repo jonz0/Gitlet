@@ -44,7 +44,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return getHelper(root, key);
     }
 
-    public V getHelper(Node n, K key) {
+    private V getHelper(Node n, K key) {
         if (n == null) {
             return null;
         }
@@ -59,7 +59,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return n.value;
     }
 
-    public Node getNode(Node n, K key) {
+    private Node getNode(Node n, K key) {
         if (n == null) {
             return null;
         }
@@ -92,7 +92,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         root = putHelper(root, key, value);
     }
 
-    public Node putHelper(Node n, K key, V value) {
+    private Node putHelper(Node n, K key, V value) {
         if (n == null) {
             return new Node(key, value);
         }
@@ -118,7 +118,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return keys;
     }
 
-    void keyAggregation(Node n, Set<K> set) {
+    private void keyAggregation(Node n, Set<K> set) {
         if (n != null) {
             keyAggregation(n.left, set);
             set.add(n.key);
@@ -143,7 +143,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
     }
 
-    public Node removeHelper(Node n, K key) {
+    private Node removeHelper(Node n, K key) {
         if (n == null) {
             return null;
         }
@@ -176,7 +176,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
     }
 
-    public Node min(Node n) {
+    private Node min(Node n) {
         if (n.left == null) {
             return n;
         }
@@ -192,7 +192,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         printInOrder(root);
     }
 
-    public void printInOrder(Node n) {
+    private void printInOrder(Node n) {
         if (n == null) {
             return;
         }
