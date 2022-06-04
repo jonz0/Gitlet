@@ -65,6 +65,7 @@ public class TestBSTMapExtra {
         q.put("d","a");
         q.put("e","a");                         // a b c d e
         assertTrue(null != q.remove("e"));      // a b c d
+
         assertTrue(q.containsKey("a"));
         assertTrue(q.containsKey("b"));
         assertTrue(q.containsKey("c"));
@@ -111,6 +112,26 @@ public class TestBSTMapExtra {
         assertTrue(((Integer) noChild.remove('Z')).equals(15));
         assertEquals(0, noChild.size());
         assertEquals(null, noChild.get('Z'));
+    }
+
+    @Test
+    public void removeSizeTest() {
+        BSTMap<String,String> q = new BSTMap<String,String>();
+        q.put("c","a");
+        q.put("b","a");
+        q.put("a","a");
+        q.put("d","a");
+        q.put("f","a");
+        q.put("i","a");
+        q.put("h","a");
+        q.put("g","a");
+        q.put("j","a");
+        q.put("k","a");
+        assertTrue(null != q.remove("c"));
+        assertTrue(null != q.remove("d"));
+        assertTrue(null != q.remove("a"));
+        assertTrue(null != q.remove("j"));
+        assertTrue(q.size() == 6);
     }
 
 }
