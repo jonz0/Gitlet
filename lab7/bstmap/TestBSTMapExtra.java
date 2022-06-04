@@ -134,4 +134,20 @@ public class TestBSTMapExtra {
         assertTrue(q.size() == 6);
     }
 
+    @Test
+    public void printTest() {
+        BSTMap<Integer,String> q = new BSTMap<Integer,String>();
+        q.put(1 ,"a");
+        q.put(2 ,"a");
+        q.put(3 ,"a");
+        q.put(7 ,"a");
+        q.put(8 ,"a");
+        q.put(9 ,"a");
+        q.put(4 ,"a");
+        q.put(5 ,"a");
+        q.put(6 ,"a");
+
+        q.printInOrder();
+    }
+
 }

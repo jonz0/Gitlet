@@ -139,6 +139,11 @@ public class ULLMap<K, V>  implements Map61B<K, V> {
     }
 
     @Override
+    public void printInOrder() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<K> keySet() {
         throw new UnsupportedOperationException();
     }
