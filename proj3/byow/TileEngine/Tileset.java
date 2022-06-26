@@ -1,6 +1,7 @@
 package byow.TileEngine;
 
 import java.awt.Color;
+import java.util.*;
 
 /**
  * Contains constant tile objects, to avoid having to remake the same tiles in different parts of
@@ -33,6 +34,17 @@ public class Tileset {
     public static final TETile SAND = new TETile('▒', Color.yellow, Color.black, "sand");
     public static final TETile MOUNTAIN = new TETile('▲', Color.gray, Color.black, "mountain");
     public static final TETile TREE = new TETile('♠', Color.green, Color.black, "tree");
+
+    public static final Map<Integer, TETile> tiles = new HashMap<>() {{
+        put(0, WALL);
+        put(1, FLOOR);
+        put(2, GRASS);
+        put(3, WATER);
+        put(4, FLOWER);
+        put(5, SAND);
+        put(6, MOUNTAIN);
+        put(7, TREE);
+    }};
 }
 
 
