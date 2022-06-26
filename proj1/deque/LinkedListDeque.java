@@ -162,7 +162,6 @@ public class LinkedListDeque<T> implements Deque<T> {
 
     private class LinkedListIterator implements Iterator<T> {
         private int index;
-
         private LinkedListIterator() {
             index = 0;
         }

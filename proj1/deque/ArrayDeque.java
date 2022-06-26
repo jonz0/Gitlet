@@ -132,13 +132,13 @@ public class ArrayDeque<T> implements Deque<T> {
         System.out.println();
     }
 
-    private Iterator<T> iterator() {
+    public Iterator<T> iterator() {
         return new ArrayDequeIterator();
     }
 
     private class ArrayDequeIterator implements Iterator<T> {
         private int index;
-        public ArrayDequeIterator() {
+        private ArrayDequeIterator() {
             index = 0;
         }
 
@@ -154,7 +154,9 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     public boolean equals(Object o) {
-        if (this == o) { return true; }
+        if (this == o) {
+            return true;
+        }
 
         if (o == null || o.getClass() == this.getClass()) {
             return false;
