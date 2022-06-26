@@ -3,6 +3,8 @@ package bstmap;
 import java.util.Set;
 import java.util.HashSet;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /** Tests of optional parts of lab 7. */
@@ -127,11 +129,14 @@ public class TestBSTMapExtra {
         q.put("g","a");
         q.put("j","a");
         q.put("k","a");
-        assertTrue(null != q.remove("c"));
-        assertTrue(null != q.remove("d"));
-        assertTrue(null != q.remove("a"));
-        assertTrue(null != q.remove("j"));
-        assertTrue(q.size() == 6);
+        assertNotNull(q.remove("c"));
+        assertEquals(9, q.size());
+        assertNotNull(q.remove("d"));
+        assertEquals(8, q.size());
+        assertNotNull(q.remove("a"));
+        assertEquals(7, q.size());
+        assertNotNull(q.remove("j"));
+        assertEquals(6, q.size());
     }
 
     @Test
@@ -148,6 +153,54 @@ public class TestBSTMapExtra {
         q.put(6 ,"a");
 
         q.printInOrder();
+    }
+
+    @Test
+    public void heightTest() {
+        BSTMap<Integer,String> q = new BSTMap<Integer,String>();
+        q.put(5 ,"a");
+        assertEquals(0, q.height(q.getNode(q.root, 5)));
+        q.put(3 ,"a");
+        assertEquals(1, q.height(q.getNode(q.root, 5)));
+        q.put(7 ,"a");
+        assertEquals(1, q.height(q.getNode(q.root, 5)));
+        q.put(2 ,"a");
+        assertEquals(2, q.height(q.getNode(q.root, 5)));
+        q.put(8 ,"a");
+        assertEquals(2, q.height(q.getNode(q.root, 5)));
+
+        q.put(4 ,"a");
+        assertEquals(2, q.height(q.getNode(q.root, 5)));
+        q.put(6 ,"a");
+        assertEquals(2, q.height(q.getNode(q.root, 5)));
+        q.put(1 ,"a");
+        assertEquals(3, q.height(q.getNode(q.root, 5)));
+        q.put(100 ,"a");
+        q.put(101 ,"a");
+        q.put(102 ,"a");
+        assertEquals(5, q.height(q.getNode(q.root, 5)));
+
+        q.remove(100 ,"a");
+        q.remove(6 ,"a");
+        q.remove(102 ,"a");
+        q.remove(1 ,"a");
+        q.remove(4 ,"a");
+        q.remove(101 ,"a");
+        assertEquals(2, q.height(q.getNode(q.root, 5)));
+    }
+
+    @Test
+    public void rebalanceChecker() {
+        BSTMap<Integer,String> q = new BSTMap<Integer,String>();
+        q.put(5 ,"a");
+        q.put(7 ,"a");
+        q.put(9 ,"a");
+        q.put(11 ,"a");
+        q.put(13 ,"a");
+
+        System.out.println(q.getNode(5).right.key);
+        System.out.println(q.getNode(7).right.key);
+        System.out.println(q.getNode(9).right.key);
     }
 
 }

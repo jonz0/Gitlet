@@ -7,14 +7,14 @@ import java.util.Set;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
-    private class Node {
-        private K key;
-        private V value;
-        private Node left;
-        private Node right;
-        private int size;
+    public class Node {
+        public K key;
+        public V value;
+        public Node left;
+        public Node right;
+        public final int size;
 
-        private Node(K key, V value) {
+        public Node(K key, V value) {
             this.key = key;
             this.value = value;
             left = null;
@@ -23,10 +23,77 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
     }
 
-    private Node root;
+    public Node root;
 
     public BSTMap() {
         this.clear();
+    }
+
+    private Node rotateRight(Node n) {
+        boolean changeRoot = false;
+        if (n == root) {
+            changeRoot = true;
+        }
+        Node tempLeft = n.left;
+        n.left = tempLeft.right;
+        tempLeft.right = n;
+        if (changeRoot) {
+            root = tempLeft;
+        }
+        return tempLeft;
+    }
+
+    private Node rotateLeft(Node n) {
+        boolean changeRoot = false;
+        if (n == root) {
+            changeRoot = true;
+        }
+        Node tempRight = n.right;
+        n.right = tempRight.left;
+        tempRight.left = n;
+        if (changeRoot) {
+            root = tempRight;
+        }
+        return tempRight;
+    }
+
+    private Node rebalance(Node n) {
+        if (n != null) {
+            int balance = balanceFactor(n);
+            if (balance < -1) {
+                if (balanceFactor(n.left) > 0) {
+                    n.left = rotateLeft(n.left);
+                }
+                n = rotateRight(n);
+            }
+
+            if (balance > 1) {
+                if (balanceFactor(n.left) < 0) {
+                    n.left = rotateRight(n.left);
+                }
+                n = rotateLeft(n);
+            }
+        }
+            return n;
+    }
+
+    private void rebalance() {
+        while
+    }
+
+    private int balanceFactor(Node n) {
+        if (n != null) {
+            return height(n.right) - height(n.left);
+        }
+        return 0;
+    }
+
+    public int height(Node n) {
+        if (n == null) {
+            return -1;
+        }
+
+        return Math.max(height(n.right), height(n.left)) + 1;
     }
 
     @Override
@@ -59,7 +126,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return n.value;
     }
 
-    private Node getNode(Node n, K key) {
+    public Node getNode(Node n, K key) {
         if (n == null) {
             return null;
         }
@@ -72,6 +139,10 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
             return getNode(n.right, key);
         }
         return n;
+    }
+
+    public Node getNode(K key) {
+        return getNode(root, key);
     }
 
     @Override
@@ -104,8 +175,6 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         } else if (compare > 0){
             n.right = putHelper(n.right, key, value);
         } else {
-//            n.key = key;
-//            n.value = value;
             n = new Node(key, value);
         }
         return n;
@@ -147,7 +216,6 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         if (n == null) {
             return null;
         }
-
 
         int compare = key.compareTo(n.key);
         if (compare < 0) {
