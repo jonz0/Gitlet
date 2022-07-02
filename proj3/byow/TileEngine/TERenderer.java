@@ -17,7 +17,6 @@ public class TERenderer {
     private int height;
     private int xOffset;
     private int yOffset;
-    private int lit;
 
     /**
      * Same functionality as the other initialization method. The only difference is that the xOff
