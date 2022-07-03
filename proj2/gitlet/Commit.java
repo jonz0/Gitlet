@@ -1,4 +1,6 @@
 package gitlet;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 // TODO: any imports you need here
 
@@ -21,6 +23,27 @@ public class Commit {
 
     /** The message of this Commit. */
     private String message;
+    private LocalDateTime timestamp;
+    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
+    private Commit parent;
 
-    /* TODO: fill in the rest of this class. */
+    public Commit(String message, Commit parent) {
+        this.message = message;
+        this.parent = parent;
+        if (parent == null) timestamp = LocalDateTime.of(1970, 1,
+                1, 0, 0, 0);
+        else timestamp = LocalDateTime.now();
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    public String getTimestamp() {
+        return timestamp.format(formatObj);
+    }
+
+    public void commit() {
+
+    }
 }

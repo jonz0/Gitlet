@@ -25,5 +25,19 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
+    public static final File COMMITS_DIR = join(CWD, "commits");
+
+    public static final File BRANCHES_DIR = join(CWD, "branches");
+
+    public void init() {
+        if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
+        else {
+            Commit initial = new Commit("initial commit", null);
+        }
+    }
+
+    public void add(String s) {
+
+    }
     /* TODO: fill in the rest of this class. */
 }

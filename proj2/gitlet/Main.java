@@ -10,15 +10,19 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
-        String firstArg = args[0];
-        switch(firstArg) {
-            case "init":
-                // TODO: handle the `init` command
-                break;
-            case "add":
-                // TODO: handle the `add [filename]` command
-                break;
-            // TODO: FILL THE REST IN
+        Repository r = new Repository();
+        if (args.length == 0) {
+            System.out.println("Please enter a command.");
+        } else {
+            switch (args[0]) {
+                case "init":
+                    System.getProperty("user.dir");
+                    r.init();
+                    Commit initial = new Commit("initial commit", null);
+                case "add":
+                    r.add(args[1]);
+                    break;
+            }
         }
     }
 }
