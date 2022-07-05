@@ -26,9 +26,11 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
     public static final File OBJECTS_DIR = join(COMMITS_DIR, "objects");
-    public static final File STAGING_DIR = join(COMMITS_DIR, "staging");
+    public static final File STAGING_FILE = join(COMMITS_DIR, "staging");
+    public static Staging staging = STAGING_FILE.exists() ? Staging.fromFile() : new Staging();
 
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
+
     public static final File HEAD = join(GITLET_DIR, "head.txt");
 
 
@@ -39,12 +41,15 @@ public class Repository {
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
             OBJECTS_DIR.mkdir();
-            STAGING_DIR.mkdir();
+            STAGING_FILE.mkdir();
         }
     }
 
     public void add(String s) {
 
     }
-    /* TODO: fill in the rest of this class. */
+
+    public static void commit() {
+
+    }
 }
