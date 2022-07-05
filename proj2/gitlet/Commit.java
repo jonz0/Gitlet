@@ -42,8 +42,4 @@ public class Commit {
     public String getTimestamp() {
         return timestamp.format(formatObj);
     }
-
-    public void commit() {
-
-    }
 }

@@ -19,9 +19,45 @@ public class Main {
                     System.getProperty("user.dir");
                     r.init();
                     Commit initial = new Commit("initial commit", null);
+                    break;
                 case "add":
                     r.add(args[1]);
                     break;
+                case "commit":
+
+                    break;
+                case "rm":
+
+                    break;
+                case "log":
+
+                    break;
+                case "global-log":
+
+                    break;
+                case "find":
+
+                    break;
+                case "status":
+
+                    break;
+                case "checkout":
+
+                    break;
+                case "branch":
+
+                    break;
+                case "rm-branch":
+
+                    break;
+                case "reset":
+
+                    break;
+                case "merge":
+
+                    break;
+                default:
+                    System.out.println("You must enter a command.");
             }
         }
     }
