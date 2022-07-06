@@ -236,4 +236,9 @@ class Utils {
         System.out.printf(msg, args);
         System.out.println();
     }
+
+    static File getFile(String file) {
+        if (Paths.get(file).isAbsolute()) return new File(file);
+        else return join(Repository.CWD, file);
+    }
 }

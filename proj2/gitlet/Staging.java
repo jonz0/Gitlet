@@ -86,6 +86,14 @@ public class Staging implements Serializable {
         return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
 
+//    public void save() {
+//        Utils.writeObject(Repository.STAGING_FILE, this);
+//    }
+
+    public Map<String, String> getTracked() {
+        return tracked;
+    }
+
     public void save() {
         Utils.writeObject(Repository.STAGING_FILE, this);
     }

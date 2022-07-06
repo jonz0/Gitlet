@@ -18,7 +18,7 @@ public class Main {
                 case "init":
                     System.getProperty("user.dir");
                     r.init();
-                    Commit initial = new Commit("initial commit", null);
+                    Commit initial = new Commit("initial commit", null, null);
                     break;
                 case "add":
                     r.add(args[1]);

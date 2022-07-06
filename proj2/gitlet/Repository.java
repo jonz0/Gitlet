@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.util.Map;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -37,7 +39,7 @@ public class Repository {
     public void init() {
         if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
         else {
-            Commit initial = new Commit("initial commit", null);
+            Commit initial = new Commit("initial commit", null, null);
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
             OBJECTS_DIR.mkdir();
@@ -45,11 +47,31 @@ public class Repository {
         }
     }
 
-    public void add(String s) {
-
+    public void add(String name) {
+        File file = Utils.getFile(name);
+        if (file.exists()) {
+            if (staging.add(file)) staging.save();
+        } else {
+            System.out.println("The specified file doesn't exist, bimbo");
+            System.exit(0);
+        }
     }
 
-    public static void commit() {
+    public static void commit(String message, Commit parent, Map<String, String> tracked) {
+        if (staging.isEmpty()) {
+            System.out.println("No changes were added to the commit, dummy");
+            System.exit(0);
+        }
 
+        staging.save();
+        Commit c = new Commit(message, parent, tracked);
+    }
+
+    public static void setHead(String headId) {
+        Utils.writeContents(HEAD, headId);
+    }
+
+    public static String getHead() {
+        return readContentsAsString(HEAD);
     }
 }
