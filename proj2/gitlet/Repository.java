@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static gitlet.Utils.*;
@@ -57,21 +59,38 @@ public class Repository {
         }
     }
 
-    public static void commit(String message, Commit parent, Map<String, String> tracked) {
+    public static void commit(String message, String secondParentId) {
         if (staging.isEmpty()) {
             System.out.println("No changes were added to the commit, dummy");
             System.exit(0);
         }
 
+        // Creates new tracked map and parents list to be committed
+        Map<String, String> tracked = staging.commit();
+        List<String> parents = new ArrayList<>();
+        parents.add(getHead().getId());
+
+        // Adds second parent if there is one
+        if (secondParentId != null) parents.add(secondParentId);
+
+        // Saves the new staging area and adds the new commit object
         staging.save();
-        Commit c = new Commit(message, parent, tracked);
+        Commit c = new Commit(message, parents, tracked);
+        c.save();
     }
 
+    /** Points the head object to a new head ID. */
     public static void setHead(String headId) {
-        Utils.writeContents(HEAD, headId);
+        writeContents(HEAD, headId);
     }
 
-    public static String getHead() {
+    /** Returns the Sha-1 id of the Head object. */
+    public static String getHeadId() {
         return readContentsAsString(HEAD);
+    }
+
+    /** Returns the Commit object stored in Head. */
+    public static Commit getHead() {
+        return Commit.readSha(getHeadId());
     }
 }

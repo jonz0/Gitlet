@@ -1,11 +1,12 @@
 package gitlet;
+import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 // TODO: any imports you need here
 
-import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.Map;
+import java.util.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -13,7 +14,7 @@ import java.util.Map;
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -26,20 +27,24 @@ public class Commit {
     private String message;
     private LocalDateTime timestamp;
     private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
-    private Commit parent;
-
+    private List<String> parents;
     private Map<String, String> tracked;
-
     private String id;
 
-    public Commit(String message, Commit parent, Map<String, String> tracked) {
+    private File commitFile;
+
+    public Commit(String message, List<String> parents, Map<String, String> tracked) {
         this.message = message;
-        this.parent = parent;
-        if (parent == null) timestamp = LocalDateTime.of(1970, 1,
-                1, 0, 0, 0);
-        else timestamp = LocalDateTime.now();
+        this.parents = parents;
         this.tracked = tracked;
-        id = Utils.sha1(message, parent.toString(), tracked.toString());
+        if (parents == null) {
+            timestamp = LocalDateTime.of(1970, 1,
+                    1, 0, 0, 0);
+            parents = new ArrayList<>();
+        } else timestamp = LocalDateTime.now();
+        if (tracked == null) tracked = new HashMap<>();
+        id = Utils.sha1(message, parents.toString(), tracked.toString());
+        commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
     }
 
     public String getMessage() {
@@ -50,18 +55,21 @@ public class Commit {
         return timestamp.format(formatObj);
     }
 
-//    public void save() {
-//        Utils.writeObject(file, this);
-//    }
+    public Map<String, String> getTracked() {
+        return tracked;
+    }
+
+    public void save() {
+        Utils.writeObject(commitFile, this);
+    }
 
     public String getId() {
         return id;
     }
-    public String toString() {
-        String parentId;
-        if (parent == null) parentId = "0";
-        else parentId = parent.getId();
 
-        return message + parentId + tracked.toString();
+    public static Commit readSha(String id) {
+        File file = Utils.join(Repository.COMMITS_DIR, id);
+        return Utils.readObject(file, Commit.class);
     }
+
 }
