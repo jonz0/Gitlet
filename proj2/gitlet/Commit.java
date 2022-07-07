@@ -53,14 +53,6 @@ public class Commit implements Serializable {
         return this.message;
     }
 
-//    public String getTimestamp() {
-//        return timestamp.format(formatObj);
-//    }
-
-//    public Map<String, String> getTracked() {
-//        return tracked;
-//    }
-
     public void save() {
         Utils.writeObject(commitFile, this);
     }
@@ -73,5 +65,13 @@ public class Commit implements Serializable {
         File file = Utils.join(Repository.COMMITS_DIR, id);
         return Utils.readObject(file, Commit.class);
     }
+
+//    public String getTimestamp() {
+//        return timestamp.format(formatObj);
+//    }
+//
+//    public Map<String, String> getTracked() {
+//        return tracked;
+//    }
 
 }
