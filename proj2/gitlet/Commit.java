@@ -25,39 +25,41 @@ public class Commit implements Serializable {
 
     /** The message of this Commit. */
     private String message;
-    private LocalDateTime timestamp;
-    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
+//    private LocalDateTime timestamp;
+//    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
     private List<String> parents;
     private Map<String, String> tracked;
     private String id;
-
     private File commitFile;
 
     public Commit(String message, List<String> parents, Map<String, String> tracked) {
         this.message = message;
         this.parents = parents;
         this.tracked = tracked;
+//        this.timestamp = LocalDateTime.now();
+
         if (parents == null) {
-            timestamp = LocalDateTime.of(1970, 1,
-                    1, 0, 0, 0);
-            parents = new ArrayList<>();
-        } else timestamp = LocalDateTime.now();
-        if (tracked == null) tracked = new HashMap<>();
-        id = Utils.sha1(message, parents.toString(), tracked.toString());
-        commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
+//            this.timestamp = LocalDateTime.of(1970, 1,
+//                    1, 0, 0, 0);
+            this.parents = new ArrayList<>();
+        }
+        if (tracked == null) this.tracked = new HashMap<>();
+
+        this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
+        this.commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
     }
 
     public String getMessage() {
         return this.message;
     }
 
-    public String getTimestamp() {
-        return timestamp.format(formatObj);
-    }
+//    public String getTimestamp() {
+//        return timestamp.format(formatObj);
+//    }
 
-    public Map<String, String> getTracked() {
-        return tracked;
-    }
+//    public Map<String, String> getTracked() {
+//        return tracked;
+//    }
 
     public void save() {
         Utils.writeObject(commitFile, this);

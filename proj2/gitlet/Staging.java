@@ -73,7 +73,7 @@ public class Staging implements Serializable {
         return true;
     }
 
-    public static Staging fromFile() {
+    public static Staging readStaging() {
         return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
 

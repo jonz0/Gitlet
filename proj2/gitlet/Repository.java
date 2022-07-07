@@ -29,9 +29,9 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
-    public static final File OBJECTS_DIR = join(COMMITS_DIR, "objects");
+    // public static final File OBJECTS_DIR = join(COMMITS_DIR, "objects");
     public static final File STAGING_FILE = join(COMMITS_DIR, "staging");
-    public static Staging staging = STAGING_FILE.exists() ? Staging.fromFile() : new Staging();
+    public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
 
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
 
@@ -44,9 +44,10 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null);
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
-            OBJECTS_DIR.mkdir();
-            STAGING_FILE.mkdir();
         }
+
+        Commit initial = new Commit("initial commit", null, null);
+        initial.save();
     }
 
     public void add(String name) {
