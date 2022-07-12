@@ -6,9 +6,9 @@ import java.util.*;
 
 public class Blob implements Serializable {
 
-    private byte[] content;
-    private String id;
-    private File source;
+    private final byte[] content;
+    private final String id;
+    private final File source;
 
     public Blob(File source) {
         this.content = Utils.readContents(source);

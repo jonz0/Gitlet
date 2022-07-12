@@ -24,7 +24,8 @@ public class Main {
                     r.add(args[1]);
                     break;
                 case "commit":
-
+                    if (args.length < 2) r.commit(args[0], null);
+                    else r.commit(args[0], args[1]);
                     break;
                 case "rm":
 

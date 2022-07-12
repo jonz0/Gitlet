@@ -24,13 +24,13 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    private String message;
+    private final String message;
 //    private LocalDateTime timestamp;
 //    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
     private List<String> parents;
+    private final String id;
+    private final File commitFile;
     private Map<String, String> tracked;
-    private String id;
-    private File commitFile;
 
     public Commit(String message, List<String> parents, Map<String, String> tracked) {
         this.message = message;
@@ -55,13 +55,14 @@ public class Commit implements Serializable {
 
     public void save() {
         Utils.writeObject(commitFile, this);
+        Repository.setHead(id);
     }
 
     public String getId() {
         return id;
     }
 
-    public static Commit readSha(String id) {
+    public static Commit readCommit(String id) {
         File file = Utils.join(Repository.COMMITS_DIR, id);
         return Utils.readObject(file, Commit.class);
     }

@@ -5,9 +5,9 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Staging implements Serializable {
-    private Map<String, String> tracked;
-    private Map<String, String> toAdd;
-    private Set<String> toRemove;
+    Map<String, String> tracked;
+    Map<String, String> toAdd;
+    Set<String> toRemove;
 
     /** Constructs the staging area. */
     public Staging() {
@@ -16,9 +16,8 @@ public class Staging implements Serializable {
         this.toRemove = new HashSet<>();
     }
 
-    public boolean isEmpty() {
-        if (toAdd.isEmpty() && toRemove.isEmpty()) return true;
-        return false;
+    public boolean isClear() {
+        return toAdd.isEmpty() && toRemove.isEmpty();
     }
 
     /** Clears the staging area. */
@@ -27,28 +26,32 @@ public class Staging implements Serializable {
         toRemove.clear();
     }
 
-    /** Attaches a file to the staging area */
+    /** Attaches a file to the staging area and returns true if the staging area changes. */
     public boolean add(File file) {
         Blob b = new Blob(file);
         String blobId = b.getId();
         String filePath = file.getPath();
+        String trackedId = tracked.get(filePath);
 
-        // if file is being tracked:
-        if (tracked.containsKey(filePath)) {
-            String trackedId = tracked.get(filePath);
-            if (blobId == trackedId) {
-                if (toAdd.containsKey(filePath)) {
-                    toAdd.remove(filePath);
-                    return true;
-                } else toRemove.remove(filePath);
-            }
+        if (toRemove.contains(filePath)) {
+            toRemove.remove(filePath);
+            toAdd.put(filePath, blobId);
+            tracked.put(filePath, blobId);
+            return true;
         }
 
-        // if file is being tracked:
-        String prevId = tracked.put(file.getPath(), blobId);
-        if (prevId != null && prevId == blobId) return false;
-
-        return true;
+        if (tracked.containsKey(filePath)) {
+            if (trackedId.equals(blobId)) {
+                return false;
+            } else {
+                toAdd.put(filePath, blobId);
+                return true;
+            }
+        } else {
+            tracked.put(filePath, blobId);
+            toAdd.put(filePath, blobId);
+            return true;
+        }
     }
 
     /** Clears the staging area. */

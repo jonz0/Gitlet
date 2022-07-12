@@ -35,7 +35,7 @@ public class Repository {
 
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
 
-    public static final File HEAD = join(GITLET_DIR, "head.txt");
+    public static final File HEAD = join(COMMITS_DIR, "head.txt");
 
 
     public void init() {
@@ -44,10 +44,8 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null);
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
+            initial.save();
         }
-
-        Commit initial = new Commit("initial commit", null, null);
-        initial.save();
     }
 
     public void add(String name) {
@@ -60,38 +58,62 @@ public class Repository {
         }
     }
 
-    public static void commit(String message, String secondParentId) {
-        if (staging.isEmpty()) {
+    public void commit(String message, String secondParentId) {
+        if (staging.isClear()) {
             System.out.println("No changes were added to the commit, dummy");
             System.exit(0);
         }
 
         // Creates new tracked map and parents list to be committed
         Map<String, String> tracked = staging.commit();
+        staging.save();
         List<String> parents = new ArrayList<>();
-        parents.add(getHead().getId());
+        parents.add(getHeadId());
 
         // Adds second parent if there is one
         if (secondParentId != null) parents.add(secondParentId);
 
         // Saves the new staging area and adds the new commit object
-        staging.save();
         Commit c = new Commit(message, parents, tracked);
         c.save();
+        setHead(c.getId());
     }
 
-    /** Points the head object to a new head ID. */
-    public static void setHead(String headId) {
-        writeContents(HEAD, headId);
+    /**
+     * Unstages the file if it is currently staged for addition. If the file is
+     * tracked in the current commit, stage it for removal and remove the file
+     * from the working directory if the user has not already done so.
+     * */
+
+    public static void rm(String name) {
+        // If the file does not exist, print a message.
+        File file = Utils.getFile(name);
+        if (!file.exists()) {
+            System.out.println("File " + name + " does not exist in the current working directory.");
+        }
+
+        // If the file is not staged for addition, print a message.
+        // If the file is staged for addition, removes the file.
+
+        if (!staging.toAdd.containsKey(file.getPath())) {
+            System.out.println("File " + name + " is not currently staged for addition.");
+        } else staging.toAdd.remove(file.getPath());
+    }
+
+    /** Other helper methods, may move these to Utils */
+
+    /** Points the head object to a new head. */
+    public static void setHead(String id) {
+        Utils.writeContents(HEAD, id);
     }
 
     /** Returns the Sha-1 id of the Head object. */
     public static String getHeadId() {
-        return readContentsAsString(HEAD);
+        return Utils.readContentsAsString(HEAD);
     }
 
     /** Returns the Commit object stored in Head. */
-    public static Commit getHead() {
-        return Commit.readSha(getHeadId());
+    public static Commit getHeadCommit() {
+        return Commit.readCommit(getHeadId());
     }
 }
