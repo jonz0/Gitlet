@@ -1,5 +1,7 @@
 package gitlet;
 
+
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
  */
@@ -18,7 +20,6 @@ public class Main {
                 case "init":
                     System.getProperty("user.dir");
                     r.init();
-                    Commit initial = new Commit("initial commit", null, null);
                     break;
                 case "add":
                     r.add(args[1]);
@@ -28,7 +29,7 @@ public class Main {
                     else r.commit(args[0], args[1]);
                     break;
                 case "rm":
-
+                    r.rm(args[1]);
                     break;
                 case "log":
 

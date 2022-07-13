@@ -54,7 +54,7 @@ public class Staging implements Serializable {
         }
     }
 
-    /** Clears the staging area. */
+    /** Removes file from the staging area. */
     public boolean remove(File file) {
         Blob b = new Blob(file);
         String blobId = b.getId();
@@ -62,18 +62,18 @@ public class Staging implements Serializable {
 
         // if file is already being tracked
         if (tracked.containsKey(filePath)) {
-            if (!toAdd.containsKey(filePath)) {
-                toAdd.remove(filePath);
+            toAdd.remove(filePath);
+            toRemove.add(filePath);
+            tracked.remove(filePath);
+            return true;
+        } else {
+            if (toRemove.contains(filePath)) {
+                return false;
+            } else {
                 toRemove.add(filePath);
                 return true;
             }
-            return false;
         }
-
-        // if file is not being tracked
-        tracked.put(filePath, blobId);
-        toRemove.add(filePath);
-        return true;
     }
 
     public static Staging readStaging() {

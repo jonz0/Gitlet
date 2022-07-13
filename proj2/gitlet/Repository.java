@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,15 +38,20 @@ public class Repository {
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
 
     public static final File HEAD = join(COMMITS_DIR, "head.txt");
+    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
 
 
     public void init() {
         if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
         else {
-            Commit initial = new Commit("initial commit", null, null);
+            LocalDateTime time = LocalDateTime.of(1970, 1,
+                    1, 0, 0, 0);
+            String timestamp = time.format(formatObj);
+            Commit initial = new Commit("initial commit", null, null, timestamp);
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
             initial.save();
+            setHead(initial.getId());
         }
     }
 
@@ -52,6 +59,7 @@ public class Repository {
         File file = Utils.getFile(name);
         if (file.exists()) {
             if (staging.add(file)) staging.save();
+            else System.out.println("File " + name + " is already tracked and staged for addition.");
         } else {
             System.out.println("The specified file doesn't exist, bimbo");
             System.exit(0);
@@ -74,7 +82,10 @@ public class Repository {
         if (secondParentId != null) parents.add(secondParentId);
 
         // Saves the new staging area and adds the new commit object
-        Commit c = new Commit(message, parents, tracked);
+        LocalDateTime time = LocalDateTime.now();
+        String timestamp = time.format(formatObj);
+        System.out.println(timestamp);
+        Commit c = new Commit(message, parents, tracked, timestamp);
         c.save();
         setHead(c.getId());
     }
@@ -85,19 +96,19 @@ public class Repository {
      * from the working directory if the user has not already done so.
      * */
 
-    public static void rm(String name) {
+    public void rm(String name) {
         // If the file does not exist, print a message.
         File file = Utils.getFile(name);
         if (!file.exists()) {
             System.out.println("File " + name + " does not exist in the current working directory.");
         }
 
-        // If the file is not staged for addition, print a message.
-        // If the file is staged for addition, removes the file.
-
-        if (!staging.toAdd.containsKey(file.getPath())) {
-            System.out.println("File " + name + " is not currently staged for addition.");
-        } else staging.toAdd.remove(file.getPath());
+        if(staging.remove(file)) {
+            staging.save();
+        } else {
+            System.out.println("File " + name + " is already staged for removal.");
+            System.exit(0);
+        }
     }
 
     /** Other helper methods, may move these to Utils */
@@ -114,6 +125,6 @@ public class Repository {
 
     /** Returns the Commit object stored in Head. */
     public static Commit getHeadCommit() {
-        return Commit.readCommit(getHeadId());
+        return Commit.getCommit(getHeadId());
     }
 }
