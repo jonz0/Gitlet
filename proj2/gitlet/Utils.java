@@ -63,6 +63,7 @@ class Utils {
         return sha1(vals.toArray(new Object[vals.size()]));
     }
 
+
     /* FILE DELETION */
 
     /** Deletes FILE if it exists and is not a directory.  Returns true
@@ -87,6 +88,7 @@ class Utils {
     static boolean restrictedDelete(String file) {
         return restrictedDelete(new File(file));
     }
+
 
     /* READING AND WRITING FILE CONTENTS */
 
@@ -157,6 +159,7 @@ class Utils {
         writeContents(file, serialize(obj));
     }
 
+
     /* DIRECTORIES */
 
     /** Filter out all but plain files. */
@@ -188,14 +191,8 @@ class Utils {
         return plainFilenamesIn(new File(dir));
     }
 
-    /* OTHER FILE UTILITIES */
 
-    /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
-     *  method. */
-    static File join(String first, String... others) {
-        return Paths.get(first, others).toFile();
-    }
+    /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
@@ -221,7 +218,6 @@ class Utils {
     }
 
 
-
     /* MESSAGES AND ERROR REPORTING */
 
     /** Return a GitletException whose message is composed from MSG and ARGS as
@@ -237,6 +233,9 @@ class Utils {
         System.out.println();
     }
 
+
+    /* GITLET COMMAND UTILS */
+
     /** Returns an instance of the filename or an instance of join(CWD, file)
      * In gitlet, Used to reference the contents of a fil.e */
     static File getFile(String file) {
@@ -244,14 +243,11 @@ class Utils {
         else return join(Repository.CWD, file);
     }
 
+    /** Builds the log and saves it to the LOG file.
+     * References the HEAD file and reads the stored Commit object,
+     * adds builds the log of that object, then points to it's parent Commit.
+     * Repeats until the parents list is empty, then saves the LOG file. */
     static void buildLog() {
-        // read the id stored in HEAD
-        // add commit to log
-        // get the file with name id stored in HEAD
-        // get the file with name id stored in parents
-        // add commit to log
-        // repeat until parents is empty
-        // add commit to log
         Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD));
         StringBuilder log = new StringBuilder();
         log.append("===");
@@ -266,13 +262,23 @@ class Utils {
         writeContents(Repository.LOG, log.toString());
     }
 
-    /** Points the head object to a new head. */
-    public static void setHead(String id) {
-        Utils.writeContents(Repository.HEAD, id);
-    }
+    /** Points the head object to a new Commit id. */
+    static void setHead(String id) { Utils.writeContents(Repository.HEAD, id); }
 
     /** Returns the Sha-1 id of the Head object. */
-    public static String getHeadId() {
+    static String getHeadId() {
         return Utils.readContentsAsString(Repository.HEAD);
+    }
+
+    static void updateActiveBranch(Commit head) {
+        writeObject(Repository.ACTIVE_BRANCH, head.getId());
+    }
+
+    static void setActiveBranch(String name) {
+        writeObject(Repository.ACTIVE_BRANCH, name);
+    }
+
+    static String getActiveBranch() {
+        return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 }

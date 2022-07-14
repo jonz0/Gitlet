@@ -45,7 +45,14 @@ public class Main {
 
                     break;
                 case "checkout":
-
+                    switch(args.length) {
+                        case 2:
+                            r.checkoutBranch(args[1]);
+                        case 3:
+                            if (!args[1].equals("--")) System.out.println("Not a valid command.");
+                        case 4:
+                            if (!args[2].equals("--")) System.out.println("Not a valid command.");
+                    }
                     break;
                 case "branch":
                     r.branch(args[1]);

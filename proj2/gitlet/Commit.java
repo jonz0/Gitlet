@@ -1,35 +1,24 @@
 package gitlet;
 import java.io.File;
 import java.io.Serializable;
-
-// TODO: any imports you need here
-
 import java.util.*;
 
 import static gitlet.Utils.writeContents;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+ *  Commits are hashed using message, parents, tracked, and timestamp.
  *
  *  @author TODO
  */
 public class Commit implements Serializable {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
 
     /** The message of this Commit. */
-    private final String message;
-    private final String timestamp;
-    private final List<String> parents;
-    private Map<String, String> tracked;
-    private final String id;
-    private final File commitFile;
+    final String message;
+    final String timestamp;
+    final List<String> parents;
+    final Map<String, String> tracked;
+    final String id;
+    final File commitFile;
 
     /** Creates the Commit object.
      * if parents and tracked are null, creates the initial commit. */
