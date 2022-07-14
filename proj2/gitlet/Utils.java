@@ -237,8 +237,42 @@ class Utils {
         System.out.println();
     }
 
+    /** Returns an instance of the filename or an instance of join(CWD, file)
+     * In gitlet, Used to reference the contents of a fil.e */
     static File getFile(String file) {
         if (Paths.get(file).isAbsolute()) return new File(file);
         else return join(Repository.CWD, file);
+    }
+
+    static void buildLog() {
+        // read the id stored in HEAD
+        // add commit to log
+        // get the file with name id stored in HEAD
+        // get the file with name id stored in parents
+        // add commit to log
+        // repeat until parents is empty
+        // add commit to log
+        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        StringBuilder log = new StringBuilder();
+        log.append("===");
+
+        while (true) {
+            log.append(currentHeadCommit.getLog());
+
+            if (currentHeadCommit.getParents().isEmpty()) break;
+            String newHeadId = currentHeadCommit.getParents().get(0);
+            currentHeadCommit = Commit.getCommit(newHeadId);
+        };
+        writeContents(Repository.LOG, log.toString());
+    }
+
+    /** Points the head object to a new head. */
+    public static void setHead(String id) {
+        Utils.writeContents(Repository.HEAD, id);
+    }
+
+    /** Returns the Sha-1 id of the Head object. */
+    public static String getHeadId() {
+        return Utils.readContentsAsString(Repository.HEAD);
     }
 }

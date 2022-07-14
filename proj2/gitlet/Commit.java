@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 import java.util.*;
 
+import static gitlet.Utils.writeContents;
+
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
@@ -24,12 +26,13 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private final String message;
     private final String timestamp;
-    private List<String> parents;
+    private final List<String> parents;
     private Map<String, String> tracked;
     private final String id;
     private final File commitFile;
 
-
+    /** Creates the Commit object.
+     * if parents and tracked are null, creates the initial commit. */
     public Commit(String message, List<String> parents, Map<String, String> tracked, String timestamp) {
         this.message = message;
         this.timestamp = timestamp;
@@ -52,16 +55,35 @@ public class Commit implements Serializable {
         return timestamp;
     }
 
-    public void save() {
-        Utils.writeObject(commitFile, this);
-    }
-
     public String getId() {
         return id;
     }
 
+    /** Returns a List of IDs of this object's parents. */
+    public List<String> getParents() {
+        return parents;
+    }
+
+    /** Returns the Commit object stored in file id. */
     public static Commit getCommit(String id) {
         File file = Utils.join(Repository.COMMITS_DIR, id);
         return Utils.readObject(file, Commit.class);
+    }
+
+    /** Constructs the log fot this commit object. */
+    public String getLog() {
+        StringBuilder log = new StringBuilder();
+        log.append("\nCommit ").append(id);
+        log.append("\nDate: ").append(timestamp);
+        log.append("\n").append(message).append("\n===");
+
+        return log.toString();
+    }
+
+    /** Saves the Commit object to the OBJECTS file.
+     * Also calls buildLog, which saves a new log ot he LOG file. */
+    public void save() {
+        Utils.writeObject(commitFile, this);
+        Utils.buildLog();
     }
 }

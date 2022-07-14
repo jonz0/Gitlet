@@ -32,14 +32,14 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
     // public static final File OBJECTS_DIR = join(COMMITS_DIR, "objects");
-    public static final File STAGING_FILE = join(COMMITS_DIR, "staging");
+    public static final File STAGING_FILE = join(GITLET_DIR, "staging");
     public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
 
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
 
-    public static final File HEAD = join(COMMITS_DIR, "head.txt");
+    public static final File HEAD = join(GITLET_DIR, "head");
+    public static final File LOG = join(GITLET_DIR, "log");
     private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
-
 
     public void init() {
         if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
@@ -50,8 +50,8 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null, timestamp);
             GITLET_DIR.mkdir();
             COMMITS_DIR.mkdir();
-            initial.save();
             setHead(initial.getId());
+            initial.save();
         }
     }
 
@@ -84,10 +84,9 @@ public class Repository {
         // Saves the new staging area and adds the new commit object
         LocalDateTime time = LocalDateTime.now();
         String timestamp = time.format(formatObj);
-        System.out.println(timestamp);
         Commit c = new Commit(message, parents, tracked, timestamp);
-        c.save();
         setHead(c.getId());
+        c.save();
     }
 
     /**
@@ -110,21 +109,15 @@ public class Repository {
             System.exit(0);
         }
     }
-
-    /** Other helper methods, may move these to Utils */
-
-    /** Points the head object to a new head. */
-    public static void setHead(String id) {
-        Utils.writeContents(HEAD, id);
+    public void log() {
+        System.out.println(Utils.readContentsAsString(LOG));
     }
 
-    /** Returns the Sha-1 id of the Head object. */
-    public static String getHeadId() {
-        return Utils.readContentsAsString(HEAD);
+    public void branch(String name) {
+
     }
 
-    /** Returns the Commit object stored in Head. */
-    public static Commit getHeadCommit() {
-        return Commit.getCommit(getHeadId());
+    public void rmbranch(String name) {
+
     }
 }
