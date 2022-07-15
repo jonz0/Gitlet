@@ -5,9 +5,9 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Staging implements Serializable {
-    Map<String, String> tracked;
-    Map<String, String> toAdd;
-    Set<String> toRemove;
+    private final Map<String, Blob> tracked;
+    private final Map<String, Blob> toAdd;
+    private final Set<String> toRemove;
 
     /** Constructs the staging area. */
     public Staging() {
@@ -28,36 +28,30 @@ public class Staging implements Serializable {
 
     /** Attaches a file to the staging area and returns true if the staging area changes. */
     public boolean add(File file) {
-        Blob b = new Blob(file);
-        String blobId = b.getId();
+        Blob blob = new Blob(file);
+        String blobId = blob.getId();
         String filePath = file.getPath();
-        String trackedId = tracked.get(filePath);
 
         if (toRemove.contains(filePath)) {
             toRemove.remove(filePath);
-            toAdd.put(filePath, blobId);
-            tracked.put(filePath, blobId);
+            toAdd.put(filePath, blob);
+            tracked.put(filePath, blob);
             return true;
         }
 
         if (tracked.containsKey(filePath)) {
-            if (trackedId.equals(blobId)) {
-                return false;
-            } else {
-                toAdd.put(filePath, blobId);
-                return true;
-            }
-        } else {
-            tracked.put(filePath, blobId);
-            toAdd.put(filePath, blobId);
-            return true;
+            String trackedId = tracked.get(filePath).getId();
+            if (trackedId.equals(blobId)) return false;
         }
+
+        tracked.put(filePath, blob);
+        toAdd.put(filePath, blob);
+        return true;
     }
 
-    /** Removes file from the staging area. */
+    /** Removes file from the staging area and returns true if the staging area changes. */
     public boolean remove(File file) {
         Blob b = new Blob(file);
-        String blobId = b.getId();
         String filePath = file.getPath();
 
         // if file is already being tracked
@@ -66,22 +60,30 @@ public class Staging implements Serializable {
             toRemove.add(filePath);
             tracked.remove(filePath);
             return true;
-        } else {
-            if (toRemove.contains(filePath)) {
-                return false;
-            } else {
-                toRemove.add(filePath);
-                return true;
-            }
         }
+
+        if (toRemove.contains(filePath)) {
+            toRemove.add(filePath);
+            return false;
+        }
+
+        return true;
     }
 
     public static Staging readStaging() {
         return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
 
-    public Map<String, String> getTracked() {
+    public Map<String, Blob> getTracked() {
         return tracked;
+    }
+
+    public Set<String> getToRemove() {
+        return toRemove;
+    }
+
+    public boolean isTrackingFile(File file) {
+        return tracked.containsKey(file.getPath());
     }
 
     /** Saves the current staging object to the Staging file. */
@@ -90,7 +92,9 @@ public class Staging implements Serializable {
     }
 
     /** clears the add and removal stages. Updates and returns the tracked stage. */
-    public Map<String, String> commit() {
+    public Map<String, Blob> commit() {
+        for (Blob b : tracked.values()) b.save();
+        for (String filePath : toRemove) tracked.remove(filePath);
         tracked.putAll(toAdd);
         for (String file : toRemove) tracked.remove(file);
         clear();

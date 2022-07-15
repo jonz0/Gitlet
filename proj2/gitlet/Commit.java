@@ -13,16 +13,16 @@ import static gitlet.Utils.writeContents;
 public class Commit implements Serializable {
 
     /** The message of this Commit. */
-    final String message;
-    final String timestamp;
-    final List<String> parents;
-    final Map<String, String> tracked;
-    final String id;
-    final File commitFile;
+    private final String message;
+    private final String timestamp;
+    private final List<String> parents;
+    private final Map<String, Blob> tracked;
+    private final String id;
+    private final File commitFile;
 
     /** Creates the Commit object.
      * if parents and tracked are null, creates the initial commit. */
-    public Commit(String message, List<String> parents, Map<String, String> tracked, String timestamp) {
+    public Commit(String message, List<String> parents, Map<String, Blob> tracked, String timestamp) {
         this.message = message;
         this.timestamp = timestamp;
 

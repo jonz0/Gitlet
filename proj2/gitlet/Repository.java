@@ -23,9 +23,11 @@ public class Repository {
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
     public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
-    public static final File ACTIVE_BRANCH = join(GITLET_DIR, "active branch");
-    /** The .commits directory. */
-    public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
+    public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
+    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    /** Commit and Blob objects */
+    public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
+    public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
     /** Formatter for the timestamp passed to Commit objects. */
     private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
 
@@ -35,7 +37,9 @@ public class Repository {
         if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
         else {
             GITLET_DIR.mkdir();
+            OBJECTS_DIR.mkdir();
             COMMITS_DIR.mkdir();
+            BLOBS_DIR.mkdir();
             BRANCHES_DIR.mkdir();
 
             LocalDateTime time = LocalDateTime.of(1970, 1,
@@ -44,10 +48,10 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null, timestamp);
             Branch master = new Branch("master", initial);
 
-            initial.save();
-            master.save();
             setHead(initial.getId());
+            initial.save();
             Utils.updateActiveBranch(initial);
+            master.save();
         }
     }
 
@@ -58,7 +62,7 @@ public class Repository {
             if (staging.add(file)) staging.save();
             else System.out.println("File " + name + " is already tracked and staged for addition.");
         } else {
-            System.out.println("The specified file doesn't exist, bimbo");
+            System.out.println("File does not exist.");
             System.exit(0);
         }
     }
@@ -72,7 +76,7 @@ public class Repository {
         }
 
         // Creates new tracked map and parents list to be committed
-        Map<String, String> tracked = staging.commit();
+        Map<String, Blob> tracked = staging.commit();
         staging.save();
         List<String> parents = new ArrayList<>();
         parents.add(getHeadId());
@@ -95,14 +99,22 @@ public class Repository {
         // If the file does not exist, print a message.
         File file = Utils.getFile(name);
         if (!file.exists()) {
+            if (staging.getToRemove().contains(file.getPath())) {
+                System.out.println("File " + name + " is already staged for removal.");
+                System.exit(0);
+            }
             System.out.println("File " + name + " does not exist in the current working directory.");
+            System.exit(0);
+        }
+
+        if (!staging.isTrackingFile(file)) {
+            System.out.println("File " + name + " is untracked in the working directory.");
+            System.exit(0);
         }
 
         if(staging.remove(file)) {
             staging.save();
-        } else {
-            System.out.println("File " + name + " is already staged for removal.");
-            System.exit(0);
+            Utils.restrictedDelete(file);
         }
     }
 
@@ -126,8 +138,8 @@ public class Repository {
     public void checkoutBranch(String name) {
         File f = Utils.join(Repository.BRANCHES_DIR, name);
         if (!f.exists()) {
-            System.out.println("Branch name " + name + "does not exist.");
-            System.exit(0)
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
         }
 
         Branch branch = Branch.getBranch(name);
@@ -138,7 +150,7 @@ public class Repository {
         File f = Utils.join(Repository.BRANCHES_DIR, name);
         if (!f.exists()) {
             System.out.println("A branch with that name does not exist.");
-            System.exit(0)
+            System.exit(0);
         }
 
         if (name.equals(Utils.getActiveBranch())) {
