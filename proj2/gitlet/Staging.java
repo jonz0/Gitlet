@@ -5,8 +5,8 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Staging implements Serializable {
-    private Map<String, Blob> tracked;
-    private final Map<String, Blob> toAdd;
+    private Map<String, String> tracked;
+    private final Map<String, String> toAdd;
     private final Set<String> toRemove;
 
     /** Constructs the staging area. */
@@ -38,18 +38,18 @@ public class Staging implements Serializable {
 
         if (toRemove.contains(filePath)) {
             toRemove.remove(filePath);
-            toAdd.put(filePath, blob);
-            tracked.put(filePath, blob);
+            toAdd.put(filePath, blobId);
+            tracked.put(filePath, blobId);
             return true;
         }
 
         if (tracked.containsKey(filePath)) {
-            String trackedId = tracked.get(filePath).getId();
+            String trackedId = Blob.getBlob(tracked.get(filePath)).getId();
             if (trackedId.equals(blobId)) return false;
         }
 
-        tracked.put(filePath, blob);
-        toAdd.put(filePath, blob);
+        tracked.put(filePath, blobId);
+        toAdd.put(filePath, blobId);
         return true;
     }
 
@@ -78,11 +78,11 @@ public class Staging implements Serializable {
         return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
 
-    public Map<String, Blob> getTracked() {
+    public Map<String, String> getTracked() {
         return tracked;
     }
 
-    public void setTracked(Map<String, Blob> m) {
+    public void setTracked(Map<String, String> m) {
         tracked = m;
     }
 
@@ -100,8 +100,11 @@ public class Staging implements Serializable {
     }
 
     /** clears the add and removal stages. Updates and returns the tracked stage. */
-    public Map<String, Blob> commit() {
-        for (Blob b : tracked.values()) b.save();
+    public Map<String, String> commit() {
+        for (String filePath : tracked.keySet()) {
+            Blob b = new Blob(Utils.getFile(filePath));
+            b.save();
+        }
         for (String filePath : toRemove) tracked.remove(filePath);
         tracked.putAll(toAdd);
         clear();

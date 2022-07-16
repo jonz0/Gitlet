@@ -76,7 +76,7 @@ public class Repository {
             System.exit(0);
         }
         // Creates new tracked map and parents list to be committed
-        Map<String, Blob> tracked = staging.commit();
+        Map<String, String> tracked = staging.commit();
         staging.save();
         List<String> parents = new ArrayList<>();
         parents.add(getHeadId());
@@ -178,7 +178,7 @@ public class Repository {
             System.exit(0);
         }
         Commit c = readObject(commitFile, Commit.class);
-        Blob b = c.getTracked().get(getFile(name).getPath());
+        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
         if (b == null) {
             System.out.println("No version of file " + name + " is being tracked in the commit.");
             System.exit(0);
@@ -191,7 +191,7 @@ public class Repository {
         File checkout = join(CWD, name);
 
         Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD));
-        Blob b = c.getTracked().get(getFile(name).getPath());
+        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
         if (b == null) {
             System.out.println("No version of file " + name + " is being tracked in the head.");
             System.exit(0);
@@ -226,5 +226,9 @@ public class Repository {
 
     public void printCurrentBranch() {
         System.out.println(getActiveBranchName());
+    }
+
+    public void readBlob(String blobId) {
+        System.out.println(Utils.readContentsAsString(join(BLOBS_DIR, blobId)));
     }
 }

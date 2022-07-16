@@ -16,13 +16,13 @@ public class Commit implements Serializable {
     private final String message;
     private final String timestamp;
     private final List<String> parents;
-    private final Map<String, Blob> tracked;
+    private final Map<String, String> tracked;
     private final String id;
     private final File commitFile;
 
     /** Creates the Commit object.
      * if parents and tracked are null, creates the initial commit. */
-    public Commit(String message, List<String> parents, Map<String, Blob> tracked, String timestamp) {
+    public Commit(String message, List<String> parents, Map<String, String> tracked, String timestamp) {
         this.message = message;
         this.timestamp = timestamp;
 
@@ -44,7 +44,7 @@ public class Commit implements Serializable {
         return timestamp;
     }
 
-    public Map<String, Blob> getTracked() {
+    public Map<String, String> getTracked() {
         return tracked;
     }
 
@@ -81,7 +81,8 @@ public class Commit implements Serializable {
     }
 
     public void restoreTrackedFiles() {
-        for (Blob b : tracked.values()) {
+        for (String id : tracked.values()) {
+            Blob b = Blob.getBlob(id);
             Utils.writeContents(b.getSource(), b.getContent());
         }
     }

@@ -77,6 +77,9 @@ public class Main {
                 case "currentbranch":
                     r.printCurrentBranch();
                     break;
+                case "readblob":
+                    r.readBlob(args[1]);
+                    break;
                 default:
                     System.out.println("You must enter a command.");
             }
