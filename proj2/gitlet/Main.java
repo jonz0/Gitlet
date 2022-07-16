@@ -47,13 +47,16 @@ public class Main {
 
                     break;
                 case "checkout":
-                    switch(args.length) {
-                        case 2:
-                            r.checkoutBranch(args[1]);
-                        case 3:
+                    switch (args.length) {
+                        case 2 -> r.checkoutBranch(args[1]);
+                        case 3 -> {
                             if (!args[1].equals("--")) System.out.println("Not a valid command.");
-                        case 4:
+                            r.checkoutFile(args[2]);
+                        }
+                        case 4 -> {
                             if (!args[2].equals("--")) System.out.println("Not a valid command.");
+                            r.checkoutCommit(args[1], args[3]);
+                        }
                     }
                     break;
                 case "branch":
@@ -67,6 +70,12 @@ public class Main {
                     break;
                 case "merge":
 
+                    break;
+                case "tracked":
+                    r.printTrackedInHead();
+                    break;
+                case "currentbranch":
+                    r.printCurrentBranch();
                     break;
                 default:
                     System.out.println("You must enter a command.");

@@ -44,6 +44,10 @@ public class Commit implements Serializable {
         return timestamp;
     }
 
+    public Map<String, Blob> getTracked() {
+        return tracked;
+    }
+
     public String getId() {
         return id;
     }
@@ -74,5 +78,11 @@ public class Commit implements Serializable {
     public void save() {
         Utils.writeObject(commitFile, this);
         Utils.buildLog();
+    }
+
+    public void restoreTrackedFiles() {
+        for (Blob b : tracked.values()) {
+            Utils.writeContents(b.getSource(), b.getContent());
+        }
     }
 }

@@ -6,9 +6,9 @@ import java.util.*;
 
 public class Branch implements Serializable {
 
-    final String name;
-    final Commit head;
-    final File branchFile;
+    private final String name;
+    private final Commit head;
+    private final File branchFile;
 
     /** Initializes the Branch object and creates an instance of the
      * associated file in BRANCHES_DIR.  */
@@ -25,8 +25,10 @@ public class Branch implements Serializable {
     public Commit getHead() {
         return head;
     }
-
-    /** Returns the Commit object stored in file id. */
+    
+    public File getBranchFile() { return branchFile; }
+    
+    /** Returns the Branch object stored in file id. */
     public static Branch getBranch(String name) {
         File file = Utils.join(Repository.BRANCHES_DIR, name);
         return Utils.readObject(file, Branch.class);

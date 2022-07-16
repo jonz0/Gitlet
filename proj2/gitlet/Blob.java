@@ -15,7 +15,7 @@ public class Blob implements Serializable {
         this.content = Utils.readContents(source);
         this.id = Utils.sha1(source.getPath(), this.content);
         this.source = source;
-        blobFile = Utils.join(Repository.BLOBS_DIR, id);
+        this.blobFile = Utils.join(Repository.BLOBS_DIR, id);
     }
 
     public File getSource() {
@@ -28,6 +28,14 @@ public class Blob implements Serializable {
 
     public byte[] getContent() {
         return content;
+    }
+
+    public File getBlobFile() { return blobFile; }
+
+    /** Returns the Commit object stored in file id. */
+    public static Blob getBlob(String id) {
+        File file = Utils.join(Repository.BLOBS_DIR, id);
+        return Utils.readObject(file, Blob.class);
     }
 
     public void save() {

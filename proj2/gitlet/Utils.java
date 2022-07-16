@@ -270,15 +270,16 @@ class Utils {
         return Utils.readContentsAsString(Repository.HEAD);
     }
 
-    static void updateActiveBranch(Commit head) {
-        writeObject(Repository.ACTIVE_BRANCH, head.getId());
+    static void setActiveBranchName(String name) {
+        Utils.writeContents(Repository.ACTIVE_BRANCH, name);
     }
 
-    static void setActiveBranch(String name) {
-        writeObject(Repository.ACTIVE_BRANCH, name);
+    static void updateActiveBranchHead(Commit c) {
+        Branch b = new Branch(getActiveBranchName(), c);
+        b.save();
     }
 
-    static String getActiveBranch() {
+    static String getActiveBranchName() {
         return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 }

@@ -21,10 +21,10 @@ public class Repository {
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
-    public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     /** Commit and Blob objects */
     public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
     public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
@@ -46,12 +46,12 @@ public class Repository {
                     1, 0, 0, 0);
             String timestamp = time.format(formatObj);
             Commit initial = new Commit("initial commit", null, null, timestamp);
-            Branch master = new Branch("master", initial);
-
             setHead(initial.getId());
             initial.save();
-            Utils.updateActiveBranch(initial);
+            Branch master = new Branch("master", initial);
             master.save();
+
+            Utils.setActiveBranchName("master");
         }
     }
 
@@ -70,11 +70,11 @@ public class Repository {
     /** Creates a new Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR. */
     public void commit(String message, String secondParentId) {
+
         if (staging.isClear()) {
-            System.out.println("No changes were added to the commit, dummy");
+            System.out.println("No changes were added to the staging area.");
             System.exit(0);
         }
-
         // Creates new tracked map and parents list to be committed
         Map<String, Blob> tracked = staging.commit();
         staging.save();
@@ -88,9 +88,9 @@ public class Repository {
         LocalDateTime time = LocalDateTime.now();
         String timestamp = time.format(formatObj);
         Commit c = new Commit(message, parents, tracked, timestamp);
-        setHead(c.getId());
-        Utils.updateActiveBranch(c);
         c.save();
+        setHead(c.getId());
+        updateActiveBranchHead(c);
     }
 
     /** Unstages the file if it is currently staged for addition. If the file is
@@ -124,26 +124,80 @@ public class Repository {
     }
 
     public void branch(String name) {
+        Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD)));
+        if (b.getBranchFile().exists()) {
+            System.out.println("A branch with that name already exists.");
+            System.exit(0);
+        }
 
-    }
-
-    public void checkoutCommit(String name) {
-
-    }
-
-    public void checkoutFile(String name) {
-
+        b.save();
     }
 
     public void checkoutBranch(String name) {
-        File f = Utils.join(Repository.BRANCHES_DIR, name);
-        if (!f.exists()) {
+        // point active branch to branch name
+        // point head to the commit stored in branch
+        // add and delete CWD files as necessary
+
+        File branchFile = join(Repository.BRANCHES_DIR, name);
+        if (!branchFile.exists()) {
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
         }
 
-        Branch branch = Branch.getBranch(name);
-        setHead(branch.getHead().getId());
+        if (name.equals(Utils.getActiveBranchName())) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+
+        staging.setTracked(Branch.getBranch(name).getHead().getTracked());
+        staging.clear();
+        staging.save();
+
+        Commit branchCommit = readObject(branchFile, Branch.class).getHead();
+        Commit prevHead = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        branchCommit.restoreTrackedFiles();
+
+        for (String filePath : prevHead.getTracked().keySet()) {
+            if (!branchCommit.getTracked().containsKey(filePath)) {
+                String fileName = new File(filePath).getName();
+                File f = join(CWD, fileName);
+                restrictedDelete(f);
+            }
+        }
+
+        setHead(readObject(branchFile, Branch.class).getHead().getId());
+        Utils.setActiveBranchName(name);
+    }
+
+    public void checkoutCommit(String commitId, String name) {
+        File checkout = join(CWD, name);
+
+        File commitFile = join(COMMITS_DIR, commitId);
+        if (!commitFile.exists()) {
+            System.out.println("No version of commit " + commitId + " exists in the repository.");
+            System.exit(0);
+        }
+        Commit c = readObject(commitFile, Commit.class);
+        Blob b = c.getTracked().get(getFile(name).getPath());
+        if (b == null) {
+            System.out.println("No version of file " + name + " is being tracked in the commit.");
+            System.exit(0);
+        }
+
+        writeContents(checkout, b.getContent());
+    }
+
+    public void checkoutFile(String name) {
+        File checkout = join(CWD, name);
+
+        Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        Blob b = c.getTracked().get(getFile(name).getPath());
+        if (b == null) {
+            System.out.println("No version of file " + name + " is being tracked in the head.");
+            System.exit(0);
+        }
+
+        writeContents(checkout, (Object) b.getContent());
     }
 
     public void rmbranch(String name) {
@@ -153,11 +207,24 @@ public class Repository {
             System.exit(0);
         }
 
-        if (name.equals(Utils.getActiveBranch())) {
+        if (name.equals(Utils.getActiveBranchName())) {
             System.out.println("Cannot remove the current branch.");
             System.exit(0);
         }
 
-        f.delete();
+        restrictedDelete(f);
+    }
+
+    /** Debugging purposes only */
+
+    public void printTrackedInHead() {
+        Commit c = Commit.getCommit(readContentsAsString(HEAD));
+        for (String filePath : c.getTracked().keySet()) {
+            System.out.println(new File(filePath).getName());
+        }
+    }
+
+    public void printCurrentBranch() {
+        System.out.println(getActiveBranchName());
     }
 }

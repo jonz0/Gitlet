@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Staging implements Serializable {
-    private final Map<String, Blob> tracked;
+    private Map<String, Blob> tracked;
     private final Map<String, Blob> toAdd;
     private final Set<String> toRemove;
 
@@ -24,6 +24,10 @@ public class Staging implements Serializable {
     public void clear() {
         toAdd.clear();
         toRemove.clear();
+    }
+
+    public void clearTracked() {
+        tracked.clear();
     }
 
     /** Attaches a file to the staging area and returns true if the staging area changes. */
@@ -78,6 +82,10 @@ public class Staging implements Serializable {
         return tracked;
     }
 
+    public void setTracked(Map<String, Blob> m) {
+        tracked = m;
+    }
+
     public Set<String> getToRemove() {
         return toRemove;
     }
@@ -96,7 +104,6 @@ public class Staging implements Serializable {
         for (Blob b : tracked.values()) b.save();
         for (String filePath : toRemove) tracked.remove(filePath);
         tracked.putAll(toAdd);
-        for (String file : toRemove) tracked.remove(file);
         clear();
         return tracked;
     }
