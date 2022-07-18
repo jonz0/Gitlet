@@ -77,7 +77,7 @@ public class Commit implements Serializable {
     /** Constructs the log fot this commit object. */
     public String getLog() {
         StringBuilder log = new StringBuilder();
-        log.append("===");
+        log.append("\n===");
         log.append("\nCommit ").append(id);
         log.append("\nDate: ").append(timestamp);
         log.append("\n").append(message).append("\n");

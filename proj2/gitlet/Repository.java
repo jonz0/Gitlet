@@ -1,12 +1,9 @@
 package gitlet;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -30,13 +27,14 @@ public class Repository {
     public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
     public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
     /** Formatter for the timestamp passed to Commit objects. */
-    public static final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
+    DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
 
     /** Creates a new INITIAL Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR with a preset message. */
     public void init() {
-        if (GITLET_DIR.exists()) System.out.println("Gitlet version control already exists in this directory, fool");
+        if (GITLET_DIR.exists()) System.out.println("A Gitlet version-control system already " +
+                "exists in the current directory.");
         else {
             GITLET_DIR.mkdir();
             OBJECTS_DIR.mkdir();
@@ -44,9 +42,7 @@ public class Repository {
             BLOBS_DIR.mkdir();
             BRANCHES_DIR.mkdir();
 
-            LocalDateTime time = LocalDateTime.of(1970, 1,
-                    1, 0, 0, 0);
-            String timestamp = time.format(formatObj);
+            String timestamp = dateFormat.format(new Date(0));
             Commit initial = new Commit("initial commit", null, null, timestamp);
             setHead(initial.getId());
             initial.save();
@@ -82,8 +78,7 @@ public class Repository {
         if (secondParentId != null) parents.add(secondParentId);
 
         // Saves the new staging area and adds the new commit object
-        LocalDateTime time = LocalDateTime.now();
-        String timestamp = time.format(formatObj);
+        String timestamp = dateFormat.format(new Date());
         Commit c = new Commit(message, parents, tracked, timestamp);
         c.save();
         setHead(c.getId());
@@ -190,7 +185,10 @@ public class Repository {
         }
 
         if (log.length() == 0) System.out.println("Found no commit with that message.");
-        else System.out.println(log.toString());
+        else {
+            log.delete(0, 1);
+            System.out.println(log.toString());
+        }
     }
 
     public void status() {

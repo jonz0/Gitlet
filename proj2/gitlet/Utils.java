@@ -262,7 +262,8 @@ class Utils {
             if (currentHeadCommit.getParents().isEmpty()) break;
             String newHeadId = currentHeadCommit.getParents().get(0);
             currentHeadCommit = Commit.getCommit(newHeadId);
-        };
+        }
+        log.delete(0, 1);
         writeContents(Repository.LOG, log.toString());
     }
 
@@ -273,6 +274,7 @@ class Utils {
         StringBuilder log = new StringBuilder();
         log.append(readContentsAsString(Repository.GLOBAL_LOG));
         log.append(c.getLog());
+        log.delete(0, 1);
         writeContents(Repository.GLOBAL_LOG, log.toString());
     }
 
