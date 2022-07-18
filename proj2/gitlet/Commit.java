@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
-import static gitlet.Utils.writeContents;
+import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
  *  Commits are hashed using message, parents, tracked, and timestamp.
@@ -48,6 +48,16 @@ public class Commit implements Serializable {
         return tracked;
     }
 
+    public Set<String> getTrackedNames() {
+        Set<String> trackedNames = new HashSet<>();
+
+        for (String filePath : tracked.keySet()) {
+            trackedNames.add(new File(filePath).getName());
+        }
+
+        return trackedNames;
+    }
+
     public String getId() {
         return id;
     }
@@ -60,6 +70,7 @@ public class Commit implements Serializable {
     /** Returns the Commit object stored in file id. */
     public static Commit getCommit(String id) {
         File file = Utils.join(Repository.COMMITS_DIR, id);
+        if (!file.exists()) System.out.println("No commit with that id exists.");
         return Utils.readObject(file, Commit.class);
     }
 
@@ -84,6 +95,17 @@ public class Commit implements Serializable {
         for (String id : tracked.values()) {
             Blob b = Blob.getBlob(id);
             Utils.writeContents(b.getSource(), b.getContent());
+        }
+    }
+
+    public void deleteUntrackedFiles() {
+        Commit head = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        for (String filePath : head.getTracked().keySet()) {
+            if (!getTracked().containsKey(filePath)) {
+                String fileName = new File(filePath).getName();
+                File f = join(Repository.CWD, fileName);
+                restrictedDelete(f);
+            }
         }
     }
 }

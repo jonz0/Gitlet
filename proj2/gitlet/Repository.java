@@ -64,20 +64,14 @@ public class Repository {
         if (file.exists()) {
             if (staging.add(file)) staging.save();
             else System.out.println("File " + name + " is already tracked and staged for addition.");
-        } else {
-            System.out.println("File does not exist.");
-            System.exit(0);
-        }
+        } else Utils.exit("File does not exist.");
     }
 
     /** Creates a new Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR. */
     public void commit(String message, String secondParentId) {
+        if (staging.isClear()) Utils.exit("No changes were added to the staging area.");
 
-        if (staging.isClear()) {
-            System.out.println("No changes were added to the staging area.");
-            System.exit(0);
-        }
         // Creates new tracked map and parents list to be committed
         Map<String, String> tracked = staging.commit();
         staging.save();
@@ -103,18 +97,12 @@ public class Repository {
         // If the file does not exist, print a message.
         File file = Utils.getFile(name);
         if (!file.exists()) {
-            if (staging.getToRemove().contains(file.getPath())) {
-                System.out.println("File " + name + " is already staged for removal.");
-                System.exit(0);
-            }
-            System.out.println("File " + name + " does not exist in the current working directory.");
-            System.exit(0);
+            if (staging.getToRemove().contains(file.getPath()))
+                Utils.exit("File " + name + " is already staged for removal.");
+            Utils.exit("File " + name + " does not exist in the current working directory.");
         }
 
-        if (!staging.isTrackingFile(file)) {
-            System.out.println("File " + name + " is untracked in the working directory.");
-            System.exit(0);
-        }
+        if (!staging.isTrackingFile(file)) Utils.exit("File " + name + " is untracked in the working directory.");
 
         if(staging.remove(file)) {
             staging.save();
@@ -130,45 +118,25 @@ public class Repository {
 
     public void branch(String name) {
         Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD)));
-        if (b.getBranchFile().exists()) {
-            System.out.println("A branch with that name already exists.");
-            System.exit(0);
-        }
+        if (b.getBranchFile().exists()) Utils.exit("A branch with that name already exists.");
 
         b.save();
     }
 
     public void checkoutBranch(String name) {
-        // point active branch to branch name
-        // point head to the commit stored in branch
-        // add and delete CWD files as necessary
-
         File branchFile = join(Repository.BRANCHES_DIR, name);
-        if (!branchFile.exists()) {
-            System.out.println("A branch with that name does not exist.");
-            System.exit(0);
-        }
+        if (!branchFile.exists()) Utils.exit("No such branch exists.");
 
-        if (name.equals(Utils.getActiveBranchName())) {
-            System.out.println("No need to checkout the current branch.");
-            System.exit(0);
-        }
-
+        if (name.equals(Utils.getActiveBranchName())) Utils.exit("No need to checkout the current branch.");
         staging.setTracked(Branch.getBranch(name).getHead().getTracked());
         staging.clear();
         staging.save();
 
         Commit branchCommit = readObject(branchFile, Branch.class).getHead();
-        Commit prevHead = Commit.getCommit(readContentsAsString(Repository.HEAD));
-        branchCommit.restoreTrackedFiles();
+        Utils.checkForUntracked(branchCommit);
 
-        for (String filePath : prevHead.getTracked().keySet()) {
-            if (!branchCommit.getTracked().containsKey(filePath)) {
-                String fileName = new File(filePath).getName();
-                File f = join(CWD, fileName);
-                restrictedDelete(f);
-            }
-        }
+        branchCommit.restoreTrackedFiles();
+        branchCommit.deleteUntrackedFiles();
 
         setHead(readObject(branchFile, Branch.class).getHead().getId());
         Utils.setActiveBranchName(name);
@@ -178,17 +146,13 @@ public class Repository {
         File checkout = join(CWD, name);
 
         File commitFile = join(COMMITS_DIR, commitId);
-        if (!commitFile.exists()) {
-            System.out.println("No version of commit " + commitId + " exists in the repository.");
-            System.exit(0);
-        }
-        Commit c = readObject(commitFile, Commit.class);
-        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
-        if (b == null) {
-            System.out.println("No version of file " + name + " is being tracked in the commit.");
-            System.exit(0);
-        }
+        if (!commitFile.exists()) Utils.exit("No commit with that id exists.");
 
+        Commit c = readObject(commitFile, Commit.class);
+        if (!c.getTrackedNames().contains(name)) Utils.exit("File does not exist in that commit.");
+        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
+
+        Utils.checkForUntracked(Commit.getCommit(commitId));
         writeContents(checkout, b.getContent());
     }
 
@@ -196,26 +160,16 @@ public class Repository {
         File checkout = join(CWD, name);
 
         Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        if (!c.getTrackedNames().contains(name)) Utils.exit("File does not exist in that commit.");
         Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
-        if (b == null) {
-            System.out.println("No version of file " + name + " is being tracked in the head.");
-            System.exit(0);
-        }
 
         writeContents(checkout, (Object) b.getContent());
     }
 
     public void rmbranch(String name) {
         File f = Utils.join(Repository.BRANCHES_DIR, name);
-        if (!f.exists()) {
-            System.out.println("A branch with that name does not exist.");
-            System.exit(0);
-        }
-
-        if (name.equals(Utils.getActiveBranchName())) {
-            System.out.println("Cannot remove the current branch.");
-            System.exit(0);
-        }
+        if (!f.exists()) Utils.exit("A branch with that name does not exist.");
+        if (name.equals(Utils.getActiveBranchName())) Utils.exit("Cannot remove the current branch.");
 
         restrictedDelete(f);
     }
@@ -243,7 +197,7 @@ public class Repository {
         StringBuilder status = new StringBuilder();
 
         status.append("=== Branches ===\n");
-        for (String branchName : plainFilenamesIn(BRANCHES_DIR)) {
+        for (String branchName : Objects.requireNonNull(plainFilenamesIn(BRANCHES_DIR))) {
             if (branchName.equals("active branch")) continue;
             if (branchName.equals(Utils.getActiveBranchName())) status.append("*");
             status.append(branchName).append("\n");
@@ -258,6 +212,19 @@ public class Repository {
         status.append("\n=== Untracked Files ===\n");
 
         System.out.println(status);
+    }
+
+    public void reset(String id) {
+        Commit commit = Commit.getCommit(id);
+        File commitFile = join(COMMITS_DIR, id);
+        if (!commitFile.exists()) Utils.exit("No commit with that id exists.");
+        Utils.checkForUntracked(commit);
+
+        staging.clear();
+        staging.save();
+        commit.restoreTrackedFiles();
+        commit.deleteUntrackedFiles();
+        setHead(id);
     }
 
     /** Debugging purposes only */

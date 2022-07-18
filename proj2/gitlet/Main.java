@@ -1,6 +1,9 @@
 package gitlet;
 
 
+import static gitlet.Utils.getFile;
+import static gitlet.Utils.readContentsAsString;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
  */
@@ -49,16 +52,14 @@ public class Main {
                     r.status();
                     break;
                 case "checkout":
-                    switch (args.length) {
-                        case 2 -> r.checkoutBranch(args[1]);
-                        case 3 -> {
-                            if (!args[1].equals("--")) System.out.println("Not a valid command.");
-                            r.checkoutFile(args[2]);
-                        }
-                        case 4 -> {
-                            if (!args[2].equals("--")) System.out.println("Not a valid command.");
-                            r.checkoutCommit(args[1], args[3]);
-                        }
+                    if (args.length == 2) r.checkoutBranch(args[1]);
+                    if (args.length == 3) {
+                        if (!args[1].equals("--")) System.out.println("Not a valid command.");
+                        r.checkoutFile(args[2]);
+                    }
+                    if (args.length == 4) {
+                        if (!args[2].equals("--")) System.out.println("Not a valid command.");
+                        r.checkoutCommit(args[1], args[3]);
                     }
                     break;
                 case "branch":
@@ -68,7 +69,8 @@ public class Main {
                     r.rmbranch(args[1]);
                     break;
                 case "reset":
-
+                    if (args.length != 2) System.out.println("Enter a commit id to move to.");
+                    r.reset(args[1]);
                     break;
                 case "merge":
 
@@ -81,6 +83,9 @@ public class Main {
                     break;
                 case "readblob":
                     r.readBlob(args[1]);
+                    break;
+                case "head":
+                    System.out.println(readContentsAsString(Repository.HEAD));
                     break;
                 default:
                     System.out.println("You must enter a command.");

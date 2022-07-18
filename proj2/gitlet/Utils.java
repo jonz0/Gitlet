@@ -233,6 +233,11 @@ class Utils {
         System.out.println();
     }
 
+    static void exit(String message) {
+        System.out.println(message);
+        System.exit(0);
+    }
+
 
     /* GITLET COMMAND UTILS */
 
@@ -279,6 +284,10 @@ class Utils {
         return Utils.readContentsAsString(Repository.HEAD);
     }
 
+    static Commit getHeadCommit() {
+        return Commit.getCommit(getHeadId());
+    }
+
     static void setActiveBranchName(String name) {
         Utils.writeContents(Repository.ACTIVE_BRANCH, name);
     }
@@ -290,5 +299,14 @@ class Utils {
 
     static String getActiveBranchName() {
         return readContentsAsString(Repository.ACTIVE_BRANCH);
+    }
+
+    static void checkForUntracked(Commit c) {
+        for (String filePath : c.getTracked().keySet()) {
+            if (!getHeadCommit().getTracked().containsKey(filePath)) {
+                if (!new File(filePath).exists()) break;
+                exit("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
     }
 }

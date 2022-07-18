@@ -9,13 +9,11 @@ public class Blob implements Serializable {
     private final byte[] content;
     private final String id;
     private final File source;
-    private final File blobFile;
 
     public Blob(File source) {
         this.content = Utils.readContents(source);
         this.id = Utils.sha1(source.getPath(), this.content);
         this.source = source;
-        this.blobFile = Utils.join(Repository.BLOBS_DIR, id);
     }
 
     public File getSource() {
@@ -26,19 +24,17 @@ public class Blob implements Serializable {
         return id;
     }
 
-    public byte[] getContent() {
-        return content;
-    }
-
-    public File getBlobFile() { return blobFile; }
+    public byte[] getContent() { return content; }
 
     /** Returns the Commit object stored in file id. */
     public static Blob getBlob(String id) {
         File file = Utils.join(Repository.BLOBS_DIR, id);
+
+        if (!file.exists()) Utils.exit("No tracked file exists with that id.");
         return Utils.readObject(file, Blob.class);
     }
 
     public void save() {
-        Utils.writeObject(blobFile, this);
+        Utils.writeObject(Utils.join(Repository.BLOBS_DIR, id), this);
     }
 }
