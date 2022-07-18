@@ -69,11 +69,12 @@ public class Main {
                     r.rmbranch(args[1]);
                     break;
                 case "reset":
-                    if (args.length != 2) System.out.println("Enter a commit id to move to.");
+                    if (args.length != 2) Utils.exit("Enter a commit id to move to.");
                     r.reset(args[1]);
                     break;
                 case "merge":
-
+                    if (args.length != 2 ) Utils.exit("Enter a branch to merge.");
+                    r.merge(args[1]);
                     break;
                 case "tracked":
                     r.printTrackedInHead();

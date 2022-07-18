@@ -225,6 +225,10 @@ public class Repository {
         setHead(id);
     }
 
+    public void merge(String branch) {
+
+    }
+
     /** Debugging purposes only */
 
     public void printTrackedInHead() {
