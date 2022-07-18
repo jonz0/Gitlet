@@ -90,6 +90,19 @@ public class Staging implements Serializable {
         return toRemove;
     }
 
+    public Map<String, String> getToAdd() {
+        return toAdd;
+    }
+
+    /** Returns the names of all files that are staged for addition and removal. */
+    public Set<String> getStaged() {
+        Set<String> staged = new HashSet<>();
+        for (String filePath : toAdd.keySet()) staged.add(new File(filePath).getName());
+        for (String filePath : toRemove) staged.add(new File(filePath).getName());
+
+        return staged;
+    }
+
     public boolean isTrackingFile(File file) {
         return tracked.containsKey(file.getPath());
     }

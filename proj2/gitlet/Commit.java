@@ -66,9 +66,10 @@ public class Commit implements Serializable {
     /** Constructs the log fot this commit object. */
     public String getLog() {
         StringBuilder log = new StringBuilder();
+        log.append("===");
         log.append("\nCommit ").append(id);
         log.append("\nDate: ").append(timestamp);
-        log.append("\n").append(message).append("\n===");
+        log.append("\n").append(message).append("\n");
 
         return log.toString();
     }
@@ -77,7 +78,6 @@ public class Commit implements Serializable {
      * Also calls buildLog, which saves a new log ot he LOG file. */
     public void save() {
         Utils.writeObject(commitFile, this);
-        Utils.buildLog();
     }
 
     public void restoreTrackedFiles() {

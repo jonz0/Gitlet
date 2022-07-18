@@ -237,7 +237,7 @@ class Utils {
     /* GITLET COMMAND UTILS */
 
     /** Returns an instance of the filename or an instance of join(CWD, file)
-     * In gitlet, Used to reference the contents of a fil.e */
+     * In gitlet, Used to reference the contents of a file. */
     static File getFile(String file) {
         if (Paths.get(file).isAbsolute()) return new File(file);
         else return join(Repository.CWD, file);
@@ -250,7 +250,6 @@ class Utils {
     static void buildLog() {
         Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD));
         StringBuilder log = new StringBuilder();
-        log.append("===");
 
         while (true) {
             log.append(currentHeadCommit.getLog());
@@ -260,6 +259,16 @@ class Utils {
             currentHeadCommit = Commit.getCommit(newHeadId);
         };
         writeContents(Repository.LOG, log.toString());
+    }
+
+    static void buildGlobalLog(Commit c) {
+        if (!Repository.GLOBAL_LOG. exists()) {
+            writeContents(Repository.GLOBAL_LOG, "");
+        }
+        StringBuilder log = new StringBuilder();
+        log.append(readContentsAsString(Repository.GLOBAL_LOG));
+        log.append(c.getLog());
+        writeContents(Repository.GLOBAL_LOG, log.toString());
     }
 
     /** Points the head object to a new Commit id. */

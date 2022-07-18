@@ -38,13 +38,15 @@ public class Main {
                     r.log();
                     break;
                 case "global-log":
-
+                    r.globalLog();
                     break;
                 case "find":
-
+                    if (args.length == 1) {
+                        System.out.println("Enter a message to search for.");
+                    } else r.find(args[1]);
                     break;
                 case "status":
-
+                    r.status();
                     break;
                 case "checkout":
                     switch (args.length) {

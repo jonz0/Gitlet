@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static gitlet.Utils.*;
 
@@ -29,7 +30,8 @@ public class Repository {
     public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
     public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
     /** Formatter for the timestamp passed to Commit objects. */
-    private final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
+    public static final DateTimeFormatter formatObj = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm:ss");
+    public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
 
     /** Creates a new INITIAL Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR with a preset message. */
@@ -52,6 +54,7 @@ public class Repository {
             master.save();
 
             Utils.setActiveBranchName("master");
+            Utils.buildGlobalLog(initial);
         }
     }
 
@@ -91,6 +94,7 @@ public class Repository {
         c.save();
         setHead(c.getId());
         updateActiveBranchHead(c);
+        Utils.buildGlobalLog(c);
     }
 
     /** Unstages the file if it is currently staged for addition. If the file is
@@ -120,6 +124,7 @@ public class Repository {
 
     /** Prints the String stored in the log file. */
     public void log() {
+        Utils.buildLog();
         System.out.println(Utils.readContentsAsString(LOG));
     }
 
@@ -213,6 +218,46 @@ public class Repository {
         }
 
         restrictedDelete(f);
+    }
+
+    public void globalLog() {
+        System.out.println(readContentsAsString(GLOBAL_LOG));
+    }
+
+    public void find(String message) {
+        StringBuilder log = new StringBuilder();
+
+        for (String c : Objects.requireNonNull(plainFilenamesIn(COMMITS_DIR),
+                "Found no commit with that message.")) {
+            Commit commit = Commit.getCommit(c);
+            if (commit.getMessage().equals(message)) {
+                log.append(commit.getLog());
+            }
+        }
+
+        if (log.length() == 0) System.out.println("Found no commit with that message.");
+        else System.out.println(log.toString());
+    }
+
+    public void status() {
+        StringBuilder status = new StringBuilder();
+
+        status.append("=== Branches ===\n");
+        for (String branchName : plainFilenamesIn(BRANCHES_DIR)) {
+            if (branchName.equals("active branch")) continue;
+            if (branchName.equals(Utils.getActiveBranchName())) status.append("*");
+            status.append(branchName).append("\n");
+        }
+        status.append("\n=== Staged Files ===\n");
+        for (String filePath : staging.getToAdd().keySet())
+            status.append(new File(filePath).getName()).append("\n");
+        status.append("\n=== Removed Files ===\n");
+        for (String filePath : staging.getToRemove())
+            status.append(new File(filePath).getName()).append("\n");
+        status.append("\n=== Modifications Not Staged For Commit ===\n");
+        status.append("\n=== Untracked Files ===\n");
+
+        System.out.println(status);
     }
 
     /** Debugging purposes only */
