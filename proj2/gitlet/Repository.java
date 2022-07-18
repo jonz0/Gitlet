@@ -22,13 +22,13 @@ public class Repository {
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
     public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
-    /** Commit and Blob objects */
+    /** Commits and Blobs in the Objects directory. */
     public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
     public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
     /** Formatter for the timestamp passed to Commit objects. */
     DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
-    public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
 
     /** Creates a new INITIAL Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR with a preset message. */
@@ -46,9 +46,9 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null, timestamp);
             setHead(initial.getId());
             initial.save();
+
             Branch master = new Branch("master", initial);
             master.save();
-
             Utils.setActiveBranchName("master");
             Utils.buildGlobalLog(initial);
         }
@@ -176,11 +176,11 @@ public class Repository {
     public void find(String message) {
         StringBuilder log = new StringBuilder();
 
-        for (String c : Objects.requireNonNull(plainFilenamesIn(COMMITS_DIR),
+        for (String commitName : Objects.requireNonNull(plainFilenamesIn(COMMITS_DIR),
                 "Found no commit with that message.")) {
-            Commit commit = Commit.getCommit(c);
-            if (commit.getMessage().equals(message)) {
-                log.append(commit.getLog());
+            Commit c = Commit.getCommit(commitName);
+            if (c.getMessage().equals(message)) {
+                log.append(c.getLog());
             }
         }
 
@@ -200,33 +200,51 @@ public class Repository {
             if (branchName.equals(Utils.getActiveBranchName())) status.append("*");
             status.append(branchName).append("\n");
         }
+
         status.append("\n=== Staged Files ===\n");
         for (String filePath : staging.getToAdd().keySet())
             status.append(new File(filePath).getName()).append("\n");
+
         status.append("\n=== Removed Files ===\n");
         for (String filePath : staging.getToRemove())
             status.append(new File(filePath).getName()).append("\n");
+
         status.append("\n=== Modifications Not Staged For Commit ===\n");
+
         status.append("\n=== Untracked Files ===\n");
 
         System.out.println(status);
     }
 
     public void reset(String id) {
-        Commit commit = Commit.getCommit(id);
+        Commit c = Commit.getCommit(id);
         File commitFile = join(COMMITS_DIR, id);
         if (!commitFile.exists()) Utils.exit("No commit with that id exists.");
-        Utils.checkForUntracked(commit);
+        Utils.checkForUntracked(c);
 
         staging.clear();
         staging.save();
-        commit.restoreTrackedFiles();
-        commit.deleteUntrackedFiles();
+        c.restoreTrackedFiles();
+        c.deleteUntrackedFiles();
         setHead(id);
     }
 
     public void merge(String branch) {
+        // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
 
+        // 2. Modified in HEAD but not other branch: Keep HEAD.
+
+        // 3. Modified in other and HEAD:
+        //      Both files are the same: No changes.
+        //      Both files are the different: Merge conflict.
+
+        // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
+
+        // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
+
+        // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
+
+        // 7. Unmodified in other but not present in HEAD: Remain removed.
     }
 
     /** Debugging purposes only */

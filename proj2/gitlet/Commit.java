@@ -50,7 +50,6 @@ public class Commit implements Serializable {
 
     public Set<String> getTrackedNames() {
         Set<String> trackedNames = new HashSet<>();
-
         for (String filePath : tracked.keySet()) {
             trackedNames.add(new File(filePath).getName());
         }
@@ -81,7 +80,6 @@ public class Commit implements Serializable {
         log.append("\ncommit ").append(id);
         log.append("\nDate: ").append(timestamp);
         log.append("\n").append(message).append("\n");
-
         return log.toString();
     }
 

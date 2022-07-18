@@ -29,7 +29,6 @@ public class Blob implements Serializable {
     /** Returns the Commit object stored in file id. */
     public static Blob getBlob(String id) {
         File file = Utils.join(Repository.BLOBS_DIR, id);
-
         if (!file.exists()) Utils.exit("No tracked file exists with that id.");
         return Utils.readObject(file, Blob.class);
     }

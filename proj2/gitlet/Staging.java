@@ -99,7 +99,6 @@ public class Staging implements Serializable {
         Set<String> staged = new HashSet<>();
         for (String filePath : toAdd.keySet()) staged.add(new File(filePath).getName());
         for (String filePath : toRemove) staged.add(new File(filePath).getName());
-
         return staged;
     }
 
@@ -118,6 +117,7 @@ public class Staging implements Serializable {
             Blob b = new Blob(Utils.getFile(filePath));
             b.save();
         }
+
         for (String filePath : toRemove) tracked.remove(filePath);
         tracked.putAll(toAdd);
         clear();

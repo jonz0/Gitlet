@@ -4,9 +4,7 @@ package gitlet;
 import static gitlet.Utils.getFile;
 import static gitlet.Utils.readContentsAsString;
 
-/** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
- */
+/** Driver class for Gitlet, a subset of the Git version-control system. */
 public class Main {
 
     /** Stores controls for gitlet and accesses methods via Repository object.
