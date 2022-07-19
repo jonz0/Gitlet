@@ -30,6 +30,12 @@ public class Staging implements Serializable {
         tracked.clear();
     }
 
+    public void unstage(File f) {
+        String filePath = f.getPath();
+        toAdd.remove(filePath);
+        tracked.remove(filePath);
+    }
+
     /** Attaches a file to the staging area and returns true if the staging area changes. */
     public boolean add(File file) {
         Blob blob = new Blob(file);

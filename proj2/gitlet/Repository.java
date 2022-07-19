@@ -16,7 +16,7 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
@@ -99,12 +99,15 @@ public class Repository {
         if (!file.exists()) {
             if (staging.getToRemove().contains(file.getPath())){
                 Utils.exit("File " + name + " is already staged for removal.");
+            } else if (staging.isTrackingFile(file)){
+                staging.unstage(file);
+                System.exit(0);
             }
             Utils.exit("File " + name + " does not exist in the current working directory.");
         }
 
         if (!staging.isTrackingFile(file)) {
-            Utils.exit("File " + name + " is untracked in the working directory.");
+            Utils.exit("No reason to remove the file.");
         }
 
         if(staging.remove(file)) {
