@@ -45,7 +45,9 @@ public class Staging implements Serializable {
 
         if (tracked.containsKey(filePath)) {
             String trackedId = Blob.getBlob(tracked.get(filePath)).getId();
-            if (trackedId.equals(blobId)) return false;
+            if (trackedId.equals(blobId)) {
+                return false;
+            }
         }
 
         tracked.put(filePath, blobId);
@@ -86,9 +88,7 @@ public class Staging implements Serializable {
         tracked = m;
     }
 
-    public Set<String> getToRemove() {
-        return toRemove;
-    }
+    public Set<String> getToRemove() { return toRemove; }
 
     public Map<String, String> getToAdd() {
         return toAdd;
@@ -97,8 +97,12 @@ public class Staging implements Serializable {
     /** Returns the names of all files that are staged for addition and removal. */
     public Set<String> getStaged() {
         Set<String> staged = new HashSet<>();
-        for (String filePath : toAdd.keySet()) staged.add(new File(filePath).getName());
-        for (String filePath : toRemove) staged.add(new File(filePath).getName());
+        for (String filePath : toAdd.keySet()) {
+            staged.add(new File(filePath).getName());
+        }
+        for (String filePath : toRemove) {
+            staged.add(new File(filePath).getName());
+        }
         return staged;
     }
 
@@ -118,7 +122,9 @@ public class Staging implements Serializable {
             b.save();
         }
 
-        for (String filePath : toRemove) tracked.remove(filePath);
+        for (String filePath : toRemove) {
+            tracked.remove(filePath);
+        }
         tracked.putAll(toAdd);
         clear();
         return tracked;

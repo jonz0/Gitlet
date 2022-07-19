@@ -26,16 +26,25 @@ public class Commit implements Serializable {
 
     /** Creates the Commit object.
      * if parents and tracked are null, creates the initial commit. */
-    public Commit(String message, List<String> parents, Map<String, String> tracked, String timestamp, int depth) {
+    public Commit(String message, List<String> parents, Map<String, String> tracked,
+                  String timestamp, int depth) {
         this.message = message;
         this.timestamp = timestamp;
         this.depth = depth;
 
-        if (parents == null) this.parents = new ArrayList<>();
-        else this.parents = parents;
+        if (parents == null) {
+            this.parents = new ArrayList<>();
+        }
+        else {
+            this.parents = parents;
+        }
 
-        if (tracked == null) this.tracked = new HashMap<>();
-        else this.tracked = tracked;
+        if (tracked == null) {
+            this.tracked = new HashMap<>();
+        }
+        else {
+            this.tracked = tracked;
+        }
 
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
         this.commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
@@ -45,7 +54,9 @@ public class Commit implements Serializable {
         return message;
     }
 
-    public int getDepth() { return depth; }
+    public int getDepth() {
+        return depth;
+    }
 
     public String getTimestamp() {
         return timestamp;
@@ -74,8 +85,8 @@ public class Commit implements Serializable {
     }
 
     /** Returns the Commit object stored in file id. */
-    public static Commit getCommit(String id) {
-        File file = Utils.join(Repository.COMMITS_DIR, id);
+    public static Commit getCommit(String commitId) {
+        File file = Utils.join(Repository.COMMITS_DIR, commitId);
         if (!file.exists()) System.out.println("No commit with that id exists.");
         return Utils.readObject(file, Commit.class);
     }
@@ -102,8 +113,8 @@ public class Commit implements Serializable {
     }
 
     public void restoreTrackedFiles() {
-        for (String id : tracked.values()) {
-            Blob b = Blob.getBlob(id);
+        for (String blobId : tracked.values()) {
+            Blob b = Blob.getBlob(blobId);
             Utils.writeContents(b.getSource(), b.getContent());
         }
     }
