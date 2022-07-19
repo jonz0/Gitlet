@@ -372,7 +372,7 @@ public class Utils {
         return m;
     }
 
-    static String lowestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
+    static String latestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
         // Moves the commonAncestorsDepths HashMap to a sortable list.
         List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(commonAncestorsDepths.entrySet());
 

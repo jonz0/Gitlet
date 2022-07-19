@@ -244,8 +244,15 @@ public class Repository {
 
         // Find split point:
         Map<String, Integer> commonAncestors = getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
-        String id = lowestCommonAncestor(commonAncestors);
+        String id = latestCommonAncestor(commonAncestors);
         Commit splitCommit = Commit.getCommit(id);
+
+        if (splitCommit.equals(otherBranch.getHead()))
+            Utils.exit("Given branch is an ancestor of the current branch.");
+        if (splitCommit.equals(getActiveBranch().getHead())) {
+            checkoutBranch(branch);
+            Utils.exit("Current branch fast-forwarded.");
+        }
 
         Map<String, List<String>> allBlobIds = Utils.allBlobIds(head, otherHead);
         Map<String, String> splitBlobs = splitCommit.getTracked();
@@ -259,8 +266,10 @@ public class Repository {
             boolean modifiedHead = inHead && !headBlobs.get(filePath).equals(splitBlobs.get(filePath));
             boolean modifiedOther = inOther && !otherBlobs.get(filePath).equals(splitBlobs.get(filePath));
 
-            Blob headBlob = Blob.getBlob(headBlobs.get(filePath));
-            Blob otherBlob = Blob.getBlob(otherBlobs.get(filePath));
+            Blob headBlob = null;
+            if (headBlobs.get(filePath) != null) headBlob = Blob.getBlob(headBlobs.get(filePath));
+            Blob otherBlob = null;
+            if (otherBlobs.get(filePath) != null) otherBlob = Blob.getBlob(otherBlobs.get(filePath));
 
             // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
             if (modifiedOther && !inHead) {
@@ -268,12 +277,12 @@ public class Repository {
                 add(new File(filePath).getName());
             }
             // 2. Modified in HEAD but not other branch: Keep HEAD.
-            if (modifiedHead && !inOther) {
+            else if (modifiedHead && !inOther) {
                 writeContents(headBlob.getSource(), headBlob.getContent());
                 add(new File(filePath).getName());
             }
             // 3. Modified in other and HEAD:
-            if (modifiedHead && modifiedOther) {
+            else if (modifiedHead && modifiedOther) {
                 //      Both files are the same: No changes.
                 if (headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
                     // do nothing
@@ -282,47 +291,48 @@ public class Repository {
                 //      Both files are the different: Merge conflict.
                 else {
                     System.out.println("Encountered a merge conflict.");
-//                    StringBuilder contents = new StringBuilder();
-//                    contents.append("<<<<<<< HEAD\n");
-//                    contents.append(headBlob.getContent());
-//                    contents.append("=======\n");
-//                    contents.append(otherBlob.getContent());
-//                    contents.append(">>>>>>>");
+                    StringBuilder contents = new StringBuilder();
+                    contents.append("<<<<<<< HEAD\n");
+                    contents.append(Arrays.toString(headBlob.getContent()));
+                    contents.append("=======\n");
+                    contents.append(Arrays.toString(otherBlob.getContent()));
+                    contents.append(">>>>>>>");
+                    writeContents(headBlob.getSource(), contents.toString());
+                    add(new File(filePath).getName());
                 }
             }
 
             // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
-            if (!inSplit && !inOther && inHead) {
+            else if (!inSplit && !inOther && inHead) {
                 writeContents(headBlob.getSource(), headBlob.getContent());
                 add(new File(filePath).getName());
             }
             // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
-            if (!inSplit && !inHead && inOther) {
+            else if (!inSplit && !inHead && inOther) {
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
             }
             // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
-            if (!modifiedHead && !inOther) {
+            else if (!modifiedHead && !inOther) {
                 rm(new File(filePath).getName());
             }
             // 7. Unmodified in other but not present in HEAD: Remain removed.
-            if (!modifiedOther && !inHead) {
+            else if (!modifiedOther && !inHead) {
                 // do nothing:
                 assert true;
             }
-        }
 
-        //** Preliminary testing only: */
-//        String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
-//        List<String> parents = new ArrayList<>();
-//        parents.add(getHeadId());
-//        parents.add(otherHead.getId());
-//        Commit c = new Commit(message, parents, staging.commit(),
-//                dateFormat.format(new Date()), getHeadCommit().getDepth() + 1);
-//        c.save();
-//        setHead(c.getId());
-//        updateActiveBranchHead(c);
-//        Utils.buildGlobalLog(c);
+            String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
+            List<String> parents = new ArrayList<>();
+            parents.add(getHeadId());
+            parents.add(otherHead.getId());
+            Commit c = new Commit(message, parents, staging.commit(),
+                dateFormat.format(new Date()), getHeadCommit().getDepth() + 1);
+            c.save();
+            setHead(c.getId());
+            updateActiveBranchHead(c);
+            Utils.buildGlobalLog(c);
+        }
     }
 
     /** Debugging purposes only */
