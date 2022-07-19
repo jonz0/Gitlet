@@ -26,9 +26,7 @@ public class Branch implements Serializable {
         return head;
     }
     
-    public File getBranchFile() {
-        return branchFile;
-    }
+    public File getBranchFile() { return branchFile; }
     
     /** Returns the Branch object stored in file id. */
     public static Branch getBranch(String name) {
