@@ -242,7 +242,9 @@ public class Utils {
     /** Returns an instance of the filename or an instance of join(CWD, file)
      * In gitlet, Used to reference the contents of a file. */
     static File getFile(String file) {
-        if (Paths.get(file).isAbsolute()) return new File(file);
+        if (Paths.get(file).isAbsolute()) {
+            return new File(file);
+        }
         else return join(Repository.CWD, file);
     }
 
@@ -266,7 +268,7 @@ public class Utils {
     }
 
     static void buildGlobalLog(Commit c) {
-        if (!Repository.GLOBAL_LOG. exists()) {
+        if (!Repository.GLOBAL_LOG.exists()) {
             writeContents(Repository.GLOBAL_LOG, "");
         }
         StringBuilder log = new StringBuilder();
@@ -308,7 +310,9 @@ public class Utils {
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
             if (!getHeadCommit().getTracked().containsKey(filePath)) {
-                if (!new File(filePath).exists()) break;
+                if (!new File(filePath).exists()) {
+                    break;
+                }
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
@@ -320,14 +324,18 @@ public class Utils {
 
         while (true) {
             // if a Commit node was visited, no need to iterate through its ancestors.
-            if (m.containsKey(currentCommit.getId())) break;
+            if (m.containsKey(currentCommit.getId())) {
+                break;
+            }
 
             // Add the current node and its depth.
             m.put(currentCommit.getId(), currentCommit.getDepth());
 
             // If the initial commit is visited, the iteration is finished.
             List<String> commitParents = currentCommit.getParents();
-            if (commitParents.isEmpty()) break;
+            if (commitParents.isEmpty()) {
+                break;
+            }
 
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
@@ -356,7 +364,9 @@ public class Utils {
 
             // If the initial commit is visited, the iteration is finished.
             List<String> commitParents = currentCommit.getParents();
-            if (commitParents.isEmpty()) break;
+            if (commitParents.isEmpty()) {
+                break;
+            }
 
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {

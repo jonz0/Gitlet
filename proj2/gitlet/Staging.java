@@ -45,7 +45,9 @@ public class Staging implements Serializable {
 
         if (tracked.containsKey(filePath)) {
             String trackedId = Blob.getBlob(tracked.get(filePath)).getId();
-            if (trackedId.equals(blobId)) return false;
+            if (trackedId.equals(blobId)) {
+                return false;
+            }
         }
 
         tracked.put(filePath, blobId);
@@ -118,7 +120,9 @@ public class Staging implements Serializable {
             b.save();
         }
 
-        for (String filePath : toRemove) tracked.remove(filePath);
+        for (String filePath : toRemove) {
+            tracked.remove(filePath);
+        }
         tracked.putAll(toAdd);
         clear();
         return tracked;

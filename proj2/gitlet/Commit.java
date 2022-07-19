@@ -31,11 +31,17 @@ public class Commit implements Serializable {
         this.timestamp = timestamp;
         this.depth = depth;
 
-        if (parents == null) this.parents = new ArrayList<>();
-        else this.parents = parents;
+        if (parents == null) {
+            this.parents = new ArrayList<>();
+        } else {
+            this.parents = parents;
+        }
 
-        if (tracked == null) this.tracked = new HashMap<>();
-        else this.tracked = tracked;
+        if (tracked == null) {
+            this.tracked = new HashMap<>();
+        } else {
+            this.tracked = tracked;
+        }
 
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
         this.commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
@@ -76,7 +82,9 @@ public class Commit implements Serializable {
     /** Returns the Commit object stored in file id. */
     public static Commit getCommit(String id) {
         File file = Utils.join(Repository.COMMITS_DIR, id);
-        if (!file.exists()) System.out.println("No commit with that id exists.");
+        if (!file.exists()) {
+            System.out.println("No commit with that id exists.");
+        }
         return Utils.readObject(file, Commit.class);
     }
 
