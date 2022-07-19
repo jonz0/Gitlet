@@ -26,9 +26,13 @@ public class Blob implements Serializable {
         return id;
     }
 
-    public byte[] getContent() { return content; }
+    public byte[] getContent() {
+        return content;
+    }
 
-    public String getContentString() { return contentString; }
+    public String getContentString() {
+        return contentString;
+    }
 
     /** Returns the Commit object stored in file id. */
     public static Blob getBlob(String id) {

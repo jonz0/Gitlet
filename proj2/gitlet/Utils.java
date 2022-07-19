@@ -244,8 +244,9 @@ public class Utils {
     static File getFile(String file) {
         if (Paths.get(file).isAbsolute()) {
             return new File(file);
+        } else {
+            return join(Repository.CWD, file);
         }
-        else return join(Repository.CWD, file);
     }
 
     /** Builds the log and saves it to the LOG file.
@@ -259,7 +260,9 @@ public class Utils {
         while (true) {
             log.append(currentHeadCommit.getLog());
 
-            if (currentHeadCommit.getParents().isEmpty()) break;
+            if (currentHeadCommit.getParents().isEmpty()) {
+                break;
+            }
             String newHeadId = currentHeadCommit.getParents().get(0);
             currentHeadCommit = Commit.getCommit(newHeadId);
         }
@@ -279,7 +282,9 @@ public class Utils {
     }
 
     /** Points the head object to a new Commit id. */
-    static void setHead(String id) { Utils.writeContents(Repository.HEAD, id); }
+    static void setHead(String id) {
+        Utils.writeContents(Repository.HEAD, id);
+    }
 
     /** Returns the Sha-1 id of the Head object. */
     static String getHeadId() {
@@ -313,7 +318,8 @@ public class Utils {
                 if (!new File(filePath).exists()) {
                     break;
                 }
-                exit("There is an untracked file in the way; delete it, or add and commit it first.");
+                exit("There is an untracked file in the way; delete it, "
+                        + "or add and commit it first.");
             }
         }
     }
@@ -384,7 +390,8 @@ public class Utils {
 
     static String latestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
         // Moves the commonAncestorsDepths HashMap to a sortable list.
-        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(commonAncestorsDepths.entrySet());
+        List<Map.Entry<String, Integer>> sortedList =
+                new ArrayList<>(commonAncestorsDepths.entrySet());
 
         // Sorts the list by values in descending order.
         // Modifies the Collections.sort Compare function using its Comparator.

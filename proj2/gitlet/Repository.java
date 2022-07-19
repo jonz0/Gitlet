@@ -24,7 +24,7 @@ public class Repository {
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
-    public static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
+    static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     /** Commits and Blobs in the Objects directory. */
     public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
     public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
@@ -34,8 +34,9 @@ public class Repository {
     /** Creates a new INITIAL Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR with a preset message. */
     public void init() {
-        if (GITLET_DIR.exists()) System.out.println("A Gitlet version-control system already "
-                + "exists in the current directory.");
+        if (GITLET_DIR.exists()) {
+            System.out.println("A Gitlet version-control system already exists in the current directory.");
+        }
         else {
             GITLET_DIR.mkdir();
             OBJECTS_DIR.mkdir();
@@ -73,8 +74,10 @@ public class Repository {
     /** Creates a new Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR. */
     public void commit(String message, String secondParentId, boolean merge) {
-        if (!merge) if (staging.isClear()) {
-            Utils.exit("No changes were added to the staging area.");
+        if (!merge) {
+            if (staging.isClear()) {
+                Utils.exit("No changes were added to the staging area.");
+            }
         }
 
 
@@ -181,7 +184,9 @@ public class Repository {
         File checkout = join(CWD, name);
 
         Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD));
-        if (!c.getTrackedNames().contains(name)) Utils.exit("File does not exist in that commit.");
+        if (!c.getTrackedNames().contains(name)) {
+            Utils.exit("File does not exist in that commit.");
+        }
         Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
 
         writeContents(checkout, b.getContent());
@@ -287,7 +292,8 @@ public class Repository {
         Utils.checkForUntracked(otherHead);
 
         // Find split point:
-        Map<String, Integer> commonAncestors = getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
+        Map<String, Integer> commonAncestors =
+                getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
         String splitId = latestCommonAncestor(commonAncestors);
         Commit splitCommit = Commit.getCommit(splitId);
 
@@ -307,8 +313,10 @@ public class Repository {
             boolean inSplit = splitBlobs.containsKey(filePath);
             boolean inHead = headBlobs.containsKey(filePath);
             boolean inOther = otherBlobs.containsKey(filePath);
-            boolean modifiedHead = inHead && !headBlobs.get(filePath).equals(splitBlobs.get(filePath));
-            boolean modifiedOther = inOther && !otherBlobs.get(filePath).equals(splitBlobs.get(filePath));
+            boolean modifiedHead = inHead
+                    && !headBlobs.get(filePath).equals(splitBlobs.get(filePath));
+            boolean modifiedOther = inOther
+                    && !otherBlobs.get(filePath).equals(splitBlobs.get(filePath));
 
             Blob headBlob = null;
             if (headBlobs.get(filePath) != null) {
@@ -324,14 +332,12 @@ public class Repository {
                 // System.out.println("case 1");
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
-            }
-            // 2. Modified in HEAD but not other branch: Keep HEAD.
-            else if (inSplit && modifiedHead && !inOther) {
+            } else if (inSplit && modifiedHead && !inOther) {
+                // 2. Modified in HEAD but not other branch: Keep HEAD.
                 // System.out.println("case 2");
                 assert true;
-            }
-            // 3. Modified in other and HEAD:
-            else if (modifiedHead && modifiedOther) {
+            } else if (modifiedHead && modifiedOther) {
+                // 3. Modified in other and HEAD:
                 //      Both files are the same: No changes.
                 if (headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
                     // System.out.println("case 3.1");
@@ -349,25 +355,21 @@ public class Repository {
                     writeContents(headBlob.getSource(), contents.toString());
                     add(new File(filePath).getName());
                 }
-            }
-            // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
-            else if (!inSplit && !inOther && inHead) {
+            } else if (!inSplit && !inOther && inHead) {
+                // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
                 // System.out.println("case 4");
                 assert true;
-            }
-            // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
-            else if (!inSplit && !inHead && inOther) {
+            } else if (!inSplit && !inHead && inOther) {
+                // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
                 // System.out.println("case 5");
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
-            }
-            // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
-            else if (!modifiedHead && !inOther) {
+            } else if (!modifiedHead && !inOther) {
+                // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
                 // System.out.println("case 6");
                 rm(new File(filePath).getName());
-            }
-            // 7. Unmodified in other but not present in HEAD: Remain removed.
-            else if (!modifiedOther && !inHead) {
+            } else if (!modifiedOther && !inHead) {
+                // 7. Unmodified in other but not present in HEAD: Remain removed.
                 // System.out.println("case 7");
                 assert true;
             }
