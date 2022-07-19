@@ -99,9 +99,6 @@ public class Repository {
         if (!file.exists()) {
             if (staging.getToRemove().contains(file.getPath())){
                 Utils.exit("File " + name + " is already staged for removal.");
-            } else if (staging.isTrackingFile(file)){
-                staging.unstage(file);
-                System.exit(0);
             }
             Utils.exit("File " + name + " does not exist in the current working directory.");
         }
