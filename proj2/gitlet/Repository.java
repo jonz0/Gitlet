@@ -204,7 +204,7 @@ public class Repository {
                 "Found no commit with that message.")) {
             Commit c = Commit.getCommit(commitName);
             if (c.getMessage().equals(message)) {
-                log.append(c.getLog());
+                log.append("\n").append(c.getId());
             }
         }
 

@@ -20,7 +20,7 @@ public class Main {
         } else {
             switch (args[0]) {
                 case "init":
-                    //System.getProperty("user.dir");
+                    System.getProperty("user.dir");
                     r.init();
                     break;
                 case "add":
