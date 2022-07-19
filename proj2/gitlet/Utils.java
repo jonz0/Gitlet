@@ -14,9 +14,7 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 
 
 /** Assorted utilities.
@@ -26,7 +24,7 @@ import java.util.List;
  *
  *  @author P. N. Hilfinger
  */
-class Utils {
+public class Utils {
 
     /** The length of a complete SHA-1 UID as a hexadecimal numeral. */
     static final int UID_LENGTH = 40;
@@ -303,6 +301,10 @@ class Utils {
         return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 
+    static Branch getActiveBranch() {
+        return readObject(Repository.ACTIVE_BRANCH, Branch.class);
+    }
+
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
             if (!getHeadCommit().getTracked().containsKey(filePath)) {
@@ -310,5 +312,101 @@ class Utils {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
+    }
+
+    static Map<String, Integer> getAncestorsDepths(Commit c) {
+        Map<String, Integer> m = new HashMap<>();
+        Commit currentCommit = c;
+
+        while (true) {
+            // if a Commit node was visited, no need to iterate through its ancestors.
+            if (m.containsKey(currentCommit.getId())) break;
+
+            // Add the current node and its depth.
+            m.put(currentCommit.getId(), currentCommit.getDepth());
+
+            // If the initial commit is visited, the iteration is finished.
+            List<String> commitParents = currentCommit.getParents();
+            if (commitParents.isEmpty()) break;
+
+            // if the Commit node has 2 parents, add the ancestors of its second parent.
+            if (commitParents.size() > 1) {
+                String secondParentId = commitParents.get(1);
+                Commit secondParent = Commit.getCommit(secondParentId);
+                m.putAll(getAncestorsDepths(secondParent));
+            }
+
+            // Change the current node to its first parent.
+            String firstParentId = commitParents.get(0);
+            currentCommit = Commit.getCommit(firstParentId);
+        }
+        return m;
+    }
+
+    static Map<String, Integer> getCommonAncestorsDepths(Commit c, Map<String, Integer> iterated) {
+        Map<String, Integer> m = new HashMap<>();
+        Commit currentCommit = c;
+        while (true) {
+            // if a shared Commit node is visited, put it in the returned map.
+            // No need to iterate through its ancestors.
+            if (iterated.containsKey(currentCommit.getId())) {
+                m.put(currentCommit.getId(), currentCommit.getDepth());
+                break;
+            }
+
+            // If the initial commit is visited, the iteration is finished.
+            List<String> commitParents = currentCommit.getParents();
+            if (commitParents.isEmpty()) break;
+
+            // if the Commit node has 2 parents, add the ancestors of its second parent.
+            if (commitParents.size() > 1) {
+                String secondParentId = commitParents.get(1);
+                Commit secondParent = Commit.getCommit(secondParentId);
+                m.putAll(getCommonAncestorsDepths(secondParent, iterated));
+            }
+
+            // Change the current node to its first parent.
+            String firstParentId = commitParents.get(0);
+            currentCommit = Commit.getCommit(firstParentId);
+        }
+        return m;
+    }
+
+    static String lowestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
+        // Moves the commonAncestorsDepths HashMap to a sortable list.
+        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(commonAncestorsDepths.entrySet());
+
+        // Sorts the list by values in descending order.
+        // Modifies the Collections.sort Compare function using its Comparator.
+        Collections.sort(sortedList, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue() - o1.getValue();
+            }
+        });
+
+        return sortedList.get(0).getKey();
+    }
+
+    static Map<String, List<String>> allBlobIds(Commit head, Commit other) {
+        Map<String, List<String>> ids = new HashMap<>();
+
+        for (String filePath : head.getTracked().keySet()) {
+            List<String> blobIds = new ArrayList<>();
+            blobIds.add(head.getTracked().get(filePath));
+            if (other.getTracked().containsKey(filePath)) {
+                blobIds.add(other.getTracked().get(filePath));
+            }
+            ids.put(filePath, blobIds);
+        }
+
+        for (String filePath : other.getTracked().keySet()) {
+            List<String> blobIds = new ArrayList<>();
+            if (!head.getTracked().containsKey(filePath)) {
+                blobIds.add(head.getTracked().get(filePath));
+            }
+            ids.put(filePath, blobIds);
+        }
+        return ids;
     }
 }

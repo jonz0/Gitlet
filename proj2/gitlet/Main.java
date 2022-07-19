@@ -1,8 +1,8 @@
 package gitlet;
 
+import java.util.Map;
 
-import static gitlet.Utils.getFile;
-import static gitlet.Utils.readContentsAsString;
+import static gitlet.Utils.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system. */
 public class Main {
@@ -20,7 +20,7 @@ public class Main {
         } else {
             switch (args[0]) {
                 case "init":
-                    System.getProperty("user.dir");
+                    //System.getProperty("user.dir");
                     r.init();
                     break;
                 case "add":
@@ -73,18 +73,6 @@ public class Main {
                 case "merge":
                     if (args.length != 2 ) Utils.exit("Enter a branch to merge.");
                     r.merge(args[1]);
-                    break;
-                case "tracked":
-                    r.printTrackedInHead();
-                    break;
-                case "currentbranch":
-                    r.printCurrentBranch();
-                    break;
-                case "readblob":
-                    r.readBlob(args[1]);
-                    break;
-                case "head":
-                    System.out.println(readContentsAsString(Repository.HEAD));
                     break;
                 default:
                     System.out.println("You must enter a command.");

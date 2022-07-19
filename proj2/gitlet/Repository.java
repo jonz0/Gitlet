@@ -15,7 +15,7 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
@@ -43,7 +43,7 @@ public class Repository {
             BRANCHES_DIR.mkdir();
 
             String timestamp = dateFormat.format(new Date(0));
-            Commit initial = new Commit("initial commit", null, null, timestamp);
+            Commit initial = new Commit("initial commit", null, null, timestamp, 0);
             setHead(initial.getId());
             initial.save();
 
@@ -73,13 +73,14 @@ public class Repository {
         staging.save();
         List<String> parents = new ArrayList<>();
         parents.add(getHeadId());
+        int parentDepth = getHeadCommit().getDepth();
 
         // Adds second parent if there is one
         if (secondParentId != null) parents.add(secondParentId);
 
         // Saves the new staging area and adds the new commit object
         String timestamp = dateFormat.format(new Date());
-        Commit c = new Commit(message, parents, tracked, timestamp);
+        Commit c = new Commit(message, parents, tracked, timestamp, parentDepth + 1);
         c.save();
         setHead(c.getId());
         updateActiveBranchHead(c);
@@ -158,7 +159,7 @@ public class Repository {
         if (!c.getTrackedNames().contains(name)) Utils.exit("File does not exist in that commit.");
         Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
 
-        writeContents(checkout, (Object) b.getContent());
+        writeContents(checkout, b.getContent());
     }
 
     public void rmbranch(String name) {
@@ -230,21 +231,98 @@ public class Repository {
     }
 
     public void merge(String branch) {
-        // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
+        // Failure cases:
+        if (!staging.isClear()) Utils.exit("You have uncommitted changes.");
+        if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) Utils.exit(
+                "A branch with that name does not exist.");
+        if (branch.equals(getActiveBranchName())) Utils.exit("Cannot merge a branch with itself.");
 
-        // 2. Modified in HEAD but not other branch: Keep HEAD.
+        Branch otherBranch = Branch.getBranch(branch);
+        Commit head = getHeadCommit();
+        Commit otherHead = otherBranch.getHead();
+        Utils.checkForUntracked(otherHead);
 
-        // 3. Modified in other and HEAD:
-        //      Both files are the same: No changes.
-        //      Both files are the different: Merge conflict.
+        // Find split point:
+        Map<String, Integer> commonAncestors = getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
+        String id = lowestCommonAncestor(commonAncestors);
+        Commit splitCommit = Commit.getCommit(id);
 
-        // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
+        Map<String, List<String>> allBlobIds = Utils.allBlobIds(head, otherHead);
+        Map<String, String> splitBlobs = splitCommit.getTracked();
+        Map<String, String> headBlobs = head.getTracked();
+        Map<String, String> otherBlobs = otherHead.getTracked();
 
-        // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
+        for (String filePath : allBlobIds.keySet()) {
+            boolean inSplit = splitBlobs.containsKey(filePath);
+            boolean inHead = headBlobs.containsKey(filePath);
+            boolean inOther = otherBlobs.containsKey(filePath);
+            boolean modifiedHead = inHead && !headBlobs.get(filePath).equals(splitBlobs.get(filePath));
+            boolean modifiedOther = inOther && !otherBlobs.get(filePath).equals(splitBlobs.get(filePath));
 
-        // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
+            Blob headBlob = Blob.getBlob(headBlobs.get(filePath));
+            Blob otherBlob = Blob.getBlob(otherBlobs.get(filePath));
 
-        // 7. Unmodified in other but not present in HEAD: Remain removed.
+            // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
+            if (modifiedOther && !inHead) {
+                writeContents(otherBlob.getSource(), otherBlob.getContent());
+                add(new File(filePath).getName());
+            }
+            // 2. Modified in HEAD but not other branch: Keep HEAD.
+            if (modifiedHead && !inOther) {
+                writeContents(headBlob.getSource(), headBlob.getContent());
+                add(new File(filePath).getName());
+            }
+            // 3. Modified in other and HEAD:
+            if (modifiedHead && modifiedOther) {
+                //      Both files are the same: No changes.
+                if (headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
+                    // do nothing
+                    assert true;
+                }
+                //      Both files are the different: Merge conflict.
+                else {
+                    System.out.println("Encountered a merge conflict.");
+//                    StringBuilder contents = new StringBuilder();
+//                    contents.append("<<<<<<< HEAD\n");
+//                    contents.append(headBlob.getContent());
+//                    contents.append("=======\n");
+//                    contents.append(otherBlob.getContent());
+//                    contents.append(">>>>>>>");
+                }
+            }
+
+            // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
+            if (!inSplit && !inOther && inHead) {
+                writeContents(headBlob.getSource(), headBlob.getContent());
+                add(new File(filePath).getName());
+            }
+            // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
+            if (!inSplit && !inHead && inOther) {
+                writeContents(otherBlob.getSource(), otherBlob.getContent());
+                add(new File(filePath).getName());
+            }
+            // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
+            if (!modifiedHead && !inOther) {
+                rm(new File(filePath).getName());
+            }
+            // 7. Unmodified in other but not present in HEAD: Remain removed.
+            if (!modifiedOther && !inHead) {
+                // do nothing:
+                assert true;
+            }
+        }
+
+        //** Preliminary testing only: */
+//        String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
+//        List<String> parents = new ArrayList<>();
+//        parents.add(getHeadId());
+//        parents.add(otherHead.getId());
+//        Commit c = new Commit(message, parents, staging.commit(),
+//                dateFormat.format(new Date()), getHeadCommit().getDepth() + 1);
+//        c.save();
+//        setHead(c.getId());
+//        updateActiveBranchHead(c);
+//        Utils.buildGlobalLog(c);
     }
 
     /** Debugging purposes only */
@@ -258,9 +336,5 @@ public class Repository {
 
     public void printCurrentBranch() {
         System.out.println(getActiveBranchName());
-    }
-
-    public void readBlob(String blobId) {
-        System.out.println(Utils.readContentsAsString(join(BLOBS_DIR, blobId)));
     }
 }
