@@ -7,11 +7,13 @@ import java.util.*;
 public class Blob implements Serializable {
 
     private final byte[] content;
+    private final String contentString;
     private final String id;
     private final File source;
 
     public Blob(File source) {
         this.content = Utils.readContents(source);
+        this.contentString = Utils.readContentsAsString(source);
         this.id = Utils.sha1(source.getPath(), this.content);
         this.source = source;
     }
@@ -25,6 +27,8 @@ public class Blob implements Serializable {
     }
 
     public byte[] getContent() { return content; }
+
+    public String getContentString() { return contentString; }
 
     /** Returns the Commit object stored in file id. */
     public static Blob getBlob(String id) {

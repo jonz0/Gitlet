@@ -29,8 +29,8 @@ public class Main {
                 case "commit":
                     if (args.length == 1) {
                         System.out.println("Enter a message for this commit.");
-                    } else if (args.length == 2) r.commit(args[1], null);
-                    else r.commit(args[1], args[2]);
+                    } else if (args.length == 2) r.commit(args[1], null, false);
+                    else r.commit(args[1], args[2], false);
                     break;
                 case "rm":
                     r.rm(args[1]);

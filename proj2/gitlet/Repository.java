@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static gitlet.Utils.*;
+import static gitlet.Utils.writeContents;
 
 /** Creates and represents the gitlet repository.
  * Stores all functionality of commands listed in the Main class.
@@ -65,8 +66,9 @@ public class Repository {
 
     /** Creates a new Commit object and saves it to a file.
      * The file is stored in the COMMITS_DIR. */
-    public void commit(String message, String secondParentId) {
-        if (staging.isClear()) Utils.exit("No changes were added to the staging area.");
+    public void commit(String message, String secondParentId, boolean merge) {
+        if (!merge) if (staging.isClear()) Utils.exit("No changes were added to the staging area.");
+
 
         // Creates new tracked map and parents list to be committed
         Map<String, String> tracked = staging.commit();
@@ -244,13 +246,12 @@ public class Repository {
 
         // Find split point:
         Map<String, Integer> commonAncestors = getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
-        String id = latestCommonAncestor(commonAncestors);
-        Commit splitCommit = Commit.getCommit(id);
+        String splitId = latestCommonAncestor(commonAncestors);
+        Commit splitCommit = Commit.getCommit(splitId);
 
-        if (splitCommit.equals(otherBranch.getHead()))
+        if (splitId.equals(otherHead.getId()))
             Utils.exit("Given branch is an ancestor of the current branch.");
-        if (splitCommit.equals(getActiveBranch().getHead())) {
-            checkoutBranch(branch);
+        if (splitId.equals(getHeadId())) {
             Utils.exit("Current branch fast-forwarded.");
         }
 
@@ -272,66 +273,60 @@ public class Repository {
             if (otherBlobs.get(filePath) != null) otherBlob = Blob.getBlob(otherBlobs.get(filePath));
 
             // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
-            if (modifiedOther && !inHead) {
+            if (inSplit && modifiedOther && !inHead) {
+                // System.out.println("case 1");
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
             }
             // 2. Modified in HEAD but not other branch: Keep HEAD.
-            else if (modifiedHead && !inOther) {
-                writeContents(headBlob.getSource(), headBlob.getContent());
-                add(new File(filePath).getName());
+            else if (inSplit && modifiedHead && !inOther) {
+                // System.out.println("case 2");
+                assert true;
             }
             // 3. Modified in other and HEAD:
             else if (modifiedHead && modifiedOther) {
                 //      Both files are the same: No changes.
                 if (headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
-                    // do nothing
+                    // System.out.println("case 3.1");
                     assert true;
-                }
-                //      Both files are the different: Merge conflict.
-                else {
+                } else {
+                    // Both files are the different: Merge conflict.
+                    System.out.println("case 3.2");
                     System.out.println("Encountered a merge conflict.");
                     StringBuilder contents = new StringBuilder();
                     contents.append("<<<<<<< HEAD\n");
-                    contents.append(Arrays.toString(headBlob.getContent()));
+                    contents.append(readContentsAsString(headBlob.getSource()));
                     contents.append("=======\n");
-                    contents.append(Arrays.toString(otherBlob.getContent()));
+                    contents.append(otherBlob.getContentString());
                     contents.append(">>>>>>>");
                     writeContents(headBlob.getSource(), contents.toString());
                     add(new File(filePath).getName());
                 }
             }
-
             // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
             else if (!inSplit && !inOther && inHead) {
-                writeContents(headBlob.getSource(), headBlob.getContent());
-                add(new File(filePath).getName());
+                // System.out.println("case 4");
+                assert true;
             }
             // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
             else if (!inSplit && !inHead && inOther) {
+                // System.out.println("case 5");
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
             }
             // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
             else if (!modifiedHead && !inOther) {
+                // System.out.println("case 6");
                 rm(new File(filePath).getName());
             }
             // 7. Unmodified in other but not present in HEAD: Remain removed.
             else if (!modifiedOther && !inHead) {
-                // do nothing:
+                // System.out.println("case 7");
                 assert true;
             }
 
             String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
-            List<String> parents = new ArrayList<>();
-            parents.add(getHeadId());
-            parents.add(otherHead.getId());
-            Commit c = new Commit(message, parents, staging.commit(),
-                dateFormat.format(new Date()), getHeadCommit().getDepth() + 1);
-            c.save();
-            setHead(c.getId());
-            updateActiveBranchHead(c);
-            Utils.buildGlobalLog(c);
+            commit(message, otherHead.getId(), true);
         }
     }
 

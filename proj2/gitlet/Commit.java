@@ -86,9 +86,9 @@ public class Commit implements Serializable {
         log.append("\n===");
         log.append("\ncommit ").append(id);
         if (parents.size() > 1) {
-            log.append("Merge: ");
-            log.append(parents.get(0).substring(0, 8)).append(" ");
-            log.append(parents.get(1).substring(0, 8));
+            log.append("\nMerge: ");
+            log.append(parents.get(0), 0, 8).append(" ");
+            log.append(parents.get(1), 0, 8);
         }
         log.append("\nDate: ").append(timestamp);
         log.append("\n").append(message).append("\n");
