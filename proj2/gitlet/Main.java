@@ -62,11 +62,11 @@ public class Main {
                         r.checkoutBranch(args[1]);
                     }
                     if (args.length == 3) {
-                        if (!args[1].equals("--")) System.out.println("Not a valid command.");
+                        if (!args[1].equals("--")) System.out.println("Incorrect operands.");
                         r.checkoutFile(args[2]);
                     }
                     if (args.length == 4) {
-                        if (!args[2].equals("--")) System.out.println("Not a valid command.");
+                        if (!args[2].equals("--")) System.out.println("Incorrect operands.");
                         r.checkoutCommit(args[1], args[3]);
                     }
                     break;

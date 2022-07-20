@@ -104,12 +104,20 @@ public class Repository {
     public void rm(String name) {
         // If the file does not exist, print a message.
         File file = Utils.getFile(name);
+        String filePath = file.getPath();
 
         if (!file.exists()) {
             if (staging.getToRemove().contains(file.getPath())) {
                 Utils.exit("File " + name + " is already staged for removal.");
             }
-            Utils.exit("File " + name + " does not exist in the current working directory.");
+            if (staging.getTracked().containsKey(filePath)) {
+                staging.remove(file);
+            }
+        }
+
+        if (!staging.getToAdd().containsKey(filePath)
+                && !staging.getTracked().containsKey(filePath)) {
+            Utils.exit("No reason to remove the file.");
         }
 
         staging.remove(file);

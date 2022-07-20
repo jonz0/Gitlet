@@ -71,8 +71,11 @@ public class Repository {
     public void commit(String message, String secondParentId, boolean merge) {
         if (!merge) {
             if (staging.isClear()) {
-                Utils.exit("No changes were added to the staging area.");
+                Utils.exit("No changes added to the commit.");
             }
+        }
+        if (message.length() == 0) {
+            Utils.exit("Please enter a commit message.");
         }
 
         // Creates new tracked map and parents list to be committed
@@ -101,12 +104,20 @@ public class Repository {
     public void rm(String name) {
         // If the file does not exist, print a message.
         File file = Utils.getFile(name);
+        String filePath = file.getPath();
 
         if (!file.exists()) {
             if (staging.getToRemove().contains(file.getPath())) {
                 Utils.exit("File " + name + " is already staged for removal.");
             }
-            Utils.exit("File " + name + " does not exist in the current working directory.");
+            if (staging.getTracked().containsKey(filePath)) {
+                staging.remove(file);
+            }
+        }
+
+        if (!staging.getToAdd().containsKey(filePath)
+                && !staging.getTracked().containsKey(filePath)) {
+            Utils.exit("No reason to remove the file.");
         }
 
         staging.remove(file);
@@ -378,5 +389,11 @@ public class Repository {
 
     public void printCurrentBranch() {
         System.out.println(getActiveBranchName());
+    }
+
+    public void exists() {
+        if(!GITLET_DIR.exists()) {
+            Utils.exit("Not in an initialized Gitlet directory.");
+        }
     }
 }

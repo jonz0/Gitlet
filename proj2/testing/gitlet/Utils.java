@@ -276,8 +276,7 @@ public class Utils {
         }
         StringBuilder log = new StringBuilder();
         log.append(readContentsAsString(Repository.GLOBAL_LOG));
-        log.append(c.getLog());
-        log.delete(0, 1);
+        log.append(c.getLog().substring(1)).append("\n");
         writeContents(Repository.GLOBAL_LOG, log.toString());
     }
 
