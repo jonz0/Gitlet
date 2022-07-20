@@ -256,19 +256,19 @@ public class Repository {
         System.out.println(status);
     }
 
-    public void reset(String id) {
-        Commit c = Commit.getCommit(id);
-        File commitFile = join(COMMITS_DIR, id);
+    public void reset(String commitId) {
+        Commit c = Commit.getCommit(commitId);
+        File commitFile = join(COMMITS_DIR, commitId);
         if (!commitFile.exists()) {
             Utils.exit("No commit with that id exists.");
         }
-        Utils.checkForUntracked(c);
 
+        Utils.checkForUntracked(c);
+        c.deleteUntrackedFiles();
         staging.clear();
         staging.save();
         c.restoreTrackedFiles();
-        c.deleteUntrackedFiles();
-        setHead(id);
+        setHead(commitId);
     }
 
     public void merge(String branch) {
