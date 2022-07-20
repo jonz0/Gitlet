@@ -16,7 +16,7 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
@@ -147,12 +147,11 @@ public class Repository {
         if (name.equals(Utils.getActiveBranchName())) {
             Utils.exit("No need to checkout the current branch.");
         }
+        Commit branchCommit = readObject(branchFile, Branch.class).getHead();
+        Utils.checkForUntracked(branchCommit);
         staging.setTracked(Branch.getBranch(name).getHead().getTracked());
         staging.clear();
         staging.save();
-
-        Commit branchCommit = readObject(branchFile, Branch.class).getHead();
-        Utils.checkForUntracked(branchCommit);
 
         branchCommit.restoreTrackedFiles();
         branchCommit.deleteUntrackedFiles();
@@ -342,7 +341,7 @@ public class Repository {
                     assert true;
                 } else {
                     // Both files are the different: Merge conflict.
-                    System.out.println("case 3.2");
+//                    System.out.println("case 3.2");
                     System.out.println("Encountered a merge conflict.");
                     StringBuilder contents = new StringBuilder();
                     contents.append("<<<<<<< HEAD\n");

@@ -314,11 +314,10 @@ public class Utils {
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
             if (!getHeadCommit().getTracked().containsKey(filePath)) {
-                if (!new File(filePath).exists()) {
-                    break;
+                if (new File(filePath).exists()) {
+                    exit("There is an untracked file in the way; delete it, "
+                            + "or add and commit it first.");
                 }
-                exit("There is an untracked file in the way; delete it, "
-                        + "or add and commit it first.");
             }
         }
     }
