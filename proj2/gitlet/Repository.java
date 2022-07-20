@@ -16,7 +16,7 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
+    public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
@@ -35,9 +35,9 @@ public class Repository {
      * The file is stored in the COMMITS_DIR with a preset message. */
     public void init() {
         if (GITLET_DIR.exists()) {
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
-        }
-        else {
+            System.out.println("A Gitlet version-control system already exists "
+                    + "in the current directory.");
+        } else {
             GITLET_DIR.mkdir();
             OBJECTS_DIR.mkdir();
             COMMITS_DIR.mkdir();
@@ -220,8 +220,7 @@ public class Repository {
 
         if (log.length() == 0) {
             System.out.println("Found no commit with that message.");
-        }
-        else {
+        } else {
             log.delete(0, 1);
             System.out.println(log.toString());
         }
@@ -359,7 +358,8 @@ public class Repository {
                 // System.out.println("case 4");
                 assert true;
             } else if (!inSplit && !inHead && inOther) {
-                // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
+                // 5. Not in split point or HEAD, but exists in other: Keep other.
+                // (Stage for addition)
                 // System.out.println("case 5");
                 writeContents(otherBlob.getSource(), otherBlob.getContent());
                 add(new File(filePath).getName());
@@ -392,7 +392,7 @@ public class Repository {
     }
 
     public void exists() {
-        if(!GITLET_DIR.exists()) {
+        if (!GITLET_DIR.exists()) {
             Utils.exit("Not in an initialized Gitlet directory.");
         }
     }
