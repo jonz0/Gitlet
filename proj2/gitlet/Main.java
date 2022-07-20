@@ -30,7 +30,7 @@ public class Main {
                 case "commit":
                     r.exists();
                     if (args.length == 1) {
-                        System.out.println("Enter a message for this commit.");
+                        System.out.println("Please enter a commit message.");
                     } else if (args.length == 2) r.commit(args[1], null, false);
                     else r.commit(args[1], args[2], false);
                     break;
