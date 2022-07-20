@@ -200,7 +200,7 @@ public class Repository {
             Utils.exit("Cannot remove the current branch.");
         }
 
-        restrictedDelete(f);
+        f.delete();
     }
 
     public void globalLog() {

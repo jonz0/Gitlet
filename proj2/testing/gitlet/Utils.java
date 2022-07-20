@@ -70,7 +70,7 @@ public class Utils {
      *  FILE also contains a directory named .gitlet. */
     static boolean restrictedDelete(File file) {
         if (!(new File(file.getParentFile(), "gitlet-temp")).isDirectory()) {
-            throw new IllegalArgumentException("not .gitlet working directory");
+            throw new IllegalArgumentException("not gitlet-temp working directory");
         }
         if (!file.isDirectory()) {
             return file.delete();
