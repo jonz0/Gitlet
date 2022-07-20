@@ -71,12 +71,8 @@ public class Repository {
     public void commit(String message, String secondParentId, boolean merge) {
         if (!merge) {
             if (staging.isClear()) {
-                Utils.exit("No changes added to the commit.");
+                Utils.exit("No changes were added to the staging area.");
             }
-        }
-
-        if (message.length() == 0) {
-            Utils.exit("Please enter a commit message.");
         }
 
         // Creates new tracked map and parents list to be committed
@@ -110,7 +106,7 @@ public class Repository {
             if (staging.getToRemove().contains(file.getPath())) {
                 Utils.exit("File " + name + " is already staged for removal.");
             }
-            Utils.exit("No reason to remove the file.");
+            Utils.exit("File " + name + " does not exist in the current working directory.");
         }
 
         staging.remove(file);

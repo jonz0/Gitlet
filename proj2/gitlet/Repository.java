@@ -71,8 +71,11 @@ public class Repository {
     public void commit(String message, String secondParentId, boolean merge) {
         if (!merge) {
             if (staging.isClear()) {
-                Utils.exit("No changes were added to the staging area.");
+                Utils.exit("No changes added to the commit.");
             }
+        }
+        if (message.length() == 0) {
+            Utils.exit("Please enter a commit message.");
         }
 
         // Creates new tracked map and parents list to be committed
@@ -378,5 +381,11 @@ public class Repository {
 
     public void printCurrentBranch() {
         System.out.println(getActiveBranchName());
+    }
+
+    public void exists() {
+        if(!GITLET_DIR.exists()) {
+            Utils.exit("Not in an initialized Gitlet directory.");
+        }
     }
 }

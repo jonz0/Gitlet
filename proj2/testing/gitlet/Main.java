@@ -50,7 +50,9 @@ public class Main {
                     r.status();
                     break;
                 case "checkout":
-                    if (args.length == 2) r.checkoutBranch(args[1]);
+                    if (args.length == 2) {
+                        r.checkoutBranch(args[1]);
+                    }
                     if (args.length == 3) {
                         if (!args[1].equals("--")) System.out.println("Not a valid command.");
                         r.checkoutFile(args[2]);
@@ -75,7 +77,7 @@ public class Main {
                     r.merge(args[1]);
                     break;
                 default:
-                    System.out.println("You must enter a command.");
+                    System.out.println("No command with that name exists.");
             }
         }
     }
