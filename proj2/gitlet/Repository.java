@@ -346,9 +346,9 @@ public class Repository {
                     StringBuilder contents = new StringBuilder();
                     contents.append("<<<<<<< HEAD\n");
                     contents.append(readContentsAsString(headBlob.getSource()));
-                    contents.append("=======\n");
+                    contents.append("\n=======\n");
                     contents.append(otherBlob.getContentString());
-                    contents.append(">>>>>>>");
+                    contents.append("\n>>>>>>>");
                     writeContents(headBlob.getSource(), contents.toString());
                     add(new File(filePath).getName());
                 }
