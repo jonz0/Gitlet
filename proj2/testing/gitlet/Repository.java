@@ -307,6 +307,7 @@ public class Repository {
         Map<String, String> otherBlobs = otherHead.getTracked();
 
         for (String filePath : allBlobIds.keySet()) {
+//            System.out.println(filePath);
             boolean inSplit = splitBlobs.containsKey(filePath);
             boolean inHead = headBlobs.containsKey(filePath);
             boolean inOther = otherBlobs.containsKey(filePath);
@@ -324,52 +325,81 @@ public class Repository {
                 otherBlob = Blob.getBlob(otherBlobs.get(filePath));
             }
 
-            // 1. Modified in other branch but not in HEAD: Keep other. (Stage for addition)
-            if (inSplit && modifiedOther && !inHead) {
-                // System.out.println("case 1");
-                writeContents(otherBlob.getSource(), otherBlob.getContent());
-                add(new File(filePath).getName());
-            } else if (inSplit && modifiedHead && !inOther) {
-                // 2. Modified in HEAD but not other branch: Keep HEAD.
-                // System.out.println("case 2");
-                assert true;
-            } else if (modifiedHead && modifiedOther) {
-                // 3. Modified in other and HEAD:
-                //      Both files are the same: No changes.
-                if (headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
-                    // System.out.println("case 3.1");
+            if (inSplit) {
+                // 1. Modified in other but not modified in HEAD: Keep other. (Stage for addition)
+                if (modifiedOther && !modifiedHead) {
+//                    System.out.println("case 1");
+                    writeContents(otherBlob.getSource(), otherBlob.getContent());
+                    add(new File(filePath).getName());
+                }
+                // 2. Modified in HEAD but not modified in other: Keep HEAD.
+                if (modifiedHead && !modifiedOther) {
+//                    System.out.println("case 3.2");
                     assert true;
-                } else {
-                    // Both files are the different: Merge conflict.
+                }
+                // 3. Modified in other and HEAD:
+                // Both files are the same: No changes.
+                // Both files are the different: Merge conflict.
+                if (modifiedHead && modifiedOther) {
+                    if (!headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
+//                        System.out.println("case 3.2");
+                        System.out.println("Encountered a merge conflict.");
+                        StringBuilder contents = new StringBuilder();
+                        contents.append("<<<<<<< HEAD\n");
+                        contents.append(readContentsAsString(headBlob.getSource()));
+                        contents.append("=======\n");
+                        contents.append(otherBlob.getContentString());
+                        contents.append(">>>>>>>\n");
+                        writeContents(headBlob.getSource(), contents.toString());
+                        add(new File(filePath).getName());
+                    }
+                }
+                if (modifiedOther && !inHead) {
 //                    System.out.println("case 3.2");
                     System.out.println("Encountered a merge conflict.");
                     StringBuilder contents = new StringBuilder();
                     contents.append("<<<<<<< HEAD\n");
-                    contents.append(readContentsAsString(headBlob.getSource()));
+                    // contents.append("");
                     contents.append("=======\n");
                     contents.append(otherBlob.getContentString());
                     contents.append(">>>>>>>\n");
                     writeContents(headBlob.getSource(), contents.toString());
                     add(new File(filePath).getName());
                 }
-            } else if (!inSplit && !inOther && inHead) {
-                // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
-                // System.out.println("case 4");
-                assert true;
-            } else if (!inSplit && !inHead && inOther) {
-                // 5. Not in split point or HEAD, but exists in other: Keep other.
-                // (Stage for addition)
-                // System.out.println("case 5");
-                writeContents(otherBlob.getSource(), otherBlob.getContent());
-                add(new File(filePath).getName());
-            } else if (!modifiedHead && !inOther) {
+                if (modifiedHead && !inOther) {
+//                    System.out.println("case 3.2");
+                    System.out.println("Encountered a merge conflict.");
+                    StringBuilder contents = new StringBuilder();
+                    contents.append("<<<<<<< HEAD\n");
+                    contents.append(readContentsAsString(headBlob.getSource()));
+                    contents.append("=======\n");
+                    // contents.append("");
+                    contents.append(">>>>>>>\n");
+                    writeContents(headBlob.getSource(), contents.toString());
+                    add(new File(filePath).getName());
+                }
                 // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
-                // System.out.println("case 6");
-                rm(new File(filePath).getName());
-            } else if (!modifiedOther && !inHead) {
+                if (!modifiedHead && !inOther) {
+//                    System.out.println("case 6");
+                    rm(new File(filePath).getName());
+                }
                 // 7. Unmodified in other but not present in HEAD: Remain removed.
-                // System.out.println("case 7");
-                assert true;
+                if (!modifiedOther && !inHead) {
+//                    System.out.println("case 7");
+                    assert true;
+                }
+            } else {
+                // 4. Not in split point or other branch, but exists in HEAD: keep HEAD.
+                if (!inOther && inHead) {
+//                    System.out.println("case 4");
+                    assert true;
+                }
+                // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
+                if (!inHead && inOther) {
+//                    System.out.println("case 5");
+                    writeContents(otherBlob.getSource(), otherBlob.getContent());
+                    add(new File(filePath).getName());
+                }
             }
         }
         String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
