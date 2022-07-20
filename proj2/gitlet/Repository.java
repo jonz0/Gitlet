@@ -371,10 +371,9 @@ public class Repository {
                 // System.out.println("case 7");
                 assert true;
             }
-
-            String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
-            commit(message, otherHead.getId(), true);
         }
+        String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
+        commit(message, otherHead.getId(), true);
     }
 
     /** Debugging purposes only */
