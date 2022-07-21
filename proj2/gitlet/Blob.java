@@ -7,6 +7,10 @@ import java.util.*;
 import static gitlet.Utils.join;
 import static gitlet.Utils.plainFilenamesIn;
 
+/** Represents a gitlet blob object.
+ *  Used for serializing and storing files in the Gitlet repository.
+ *  @author Jonathan Lu
+ */
 public class Blob implements Serializable {
 
     private final byte[] content;
@@ -17,8 +21,9 @@ public class Blob implements Serializable {
     public Blob(File source) {
         this.content = Utils.readContents(source);
         this.contentString = Utils.readContentsAsString(source);
-        this.id = Utils.sha1(source.getPath(), this.content);
         this.source = source;
+        // This object's id is the SHA-1 hash of the source file path and content.
+        this.id = Utils.sha1(source.getPath(), this.content);
     }
 
     public File getSource() {
@@ -37,7 +42,8 @@ public class Blob implements Serializable {
         return contentString;
     }
 
-    /** Returns the Blob object stored in file id. */
+    /** Returns the blob object stored in the file id. Returns null if the blob id
+     * does not reference an existing Blob.*/
     public static Blob getBlob(String id) {
         File blobFile;
         String folderName = id.substring(0, 2);
@@ -61,10 +67,11 @@ public class Blob implements Serializable {
         return Utils.readObject(blobFile, Blob.class);
     }
 
+    /** Saves the blob object to the OBJECTS file in a directory named
+     * the first two characters of the blob id. */
     public void save() {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-
         File folder = join(Repository.OBJECTS_DIR, folderName);
         folder.mkdir();
         File blobFile = join(folder, fileName);

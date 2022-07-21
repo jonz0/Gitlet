@@ -6,11 +6,12 @@ import static gitlet.Utils.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system. */
 public class Main {
-// 266250c44641c4a0b1ad017ff95cdaaa0f0406e1
+
     /** Stores controls for gitlet and accesses methods via Repository object.
      *
      * Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ...
+     *  @author Jonathan Lu
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?

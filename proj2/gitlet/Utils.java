@@ -17,13 +17,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 
-/** Assorted utilities.
- *
- * Give this file a good read as it provides several useful utility functions
- * to save you some time.
- *
- *  @author P. N. Hilfinger
- */
+/** Assorted utilities here.
+ * Added and modified certain utilities for ease of use.
+ * */
 public class Utils {
 
     /** The length of a complete SHA-1 UID as a hexadecimal numeral. */
@@ -253,6 +249,7 @@ public class Utils {
         System.out.println();
     }
 
+    /** Used for error handling. Prints the given message, then exits the program. */
     static void exit(String message) {
         System.out.println(message);
         System.exit(0);
@@ -292,6 +289,7 @@ public class Utils {
         writeContents(Repository.LOG, log.toString());
     }
 
+    /** Builds the global log of all commits in chronological order. */
     static void buildGlobalLog(Commit c) {
         if (!Repository.GLOBAL_LOG.exists()) {
             writeContents(Repository.GLOBAL_LOG, "");
@@ -307,7 +305,7 @@ public class Utils {
         Utils.writeContents(Repository.HEAD, id);
     }
 
-    /** Returns the Sha-1 id of the Head object. */
+    /** Returns the Sha-1 hash of the Head object. */
     static String getHeadId() {
         return Utils.readContentsAsString(Repository.HEAD);
     }
@@ -320,19 +318,17 @@ public class Utils {
         Utils.writeContents(Repository.ACTIVE_BRANCH, name);
     }
 
+    static String getActiveBranchName() {
+        return readContentsAsString(Repository.ACTIVE_BRANCH);
+    }
+
     static void updateActiveBranchHead(Commit c) {
         Branch b = new Branch(getActiveBranchName(), c);
         b.save();
     }
 
-    static String getActiveBranchName() {
-        return readContentsAsString(Repository.ACTIVE_BRANCH);
-    }
-
-    static Branch getActiveBranch() {
-        return readObject(Repository.ACTIVE_BRANCH, Branch.class);
-    }
-
+    /** Error handling for when a commit is being checked out. If an untracked file
+     * will be modified or removed by the checkout, displays an error message. */
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
             if (!getHeadCommit().getTracked().containsKey(filePath)) {
@@ -344,6 +340,9 @@ public class Utils {
         }
     }
 
+    /** Returns a Map where the keys are all ancestor commits of the given commit, and
+     * their values are the depth from the initial commit. The depth will be used to
+     * find the latest common ancestor (ancestor with greatest depth) of two commits. */
     static Map<String, Integer> getAncestorsDepths(Commit c) {
         Map<String, Integer> m = new HashMap<>();
         Commit currentCommit = c;
@@ -353,7 +352,6 @@ public class Utils {
             if (m.containsKey(currentCommit.getId())) {
                 break;
             }
-
             // Add the current node and its depth.
             m.put(currentCommit.getId(), currentCommit.getDepth());
 
@@ -362,14 +360,12 @@ public class Utils {
             if (commitParents.isEmpty()) {
                 break;
             }
-
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
                 Commit secondParent = Commit.getCommit(secondParentId);
                 m.putAll(getAncestorsDepths(secondParent));
             }
-
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
             currentCommit = Commit.getCommit(firstParentId);
@@ -377,37 +373,38 @@ public class Utils {
         return m;
     }
 
+    /** Returns a map of all common ancestors, which are ancestor commits shared
+     * by both the given commit and the Map iterated. */
     static Map<String, Integer> getCommonAncestorsDepths(Commit c, Map<String, Integer> iterated) {
-        Map<String, Integer> m = new HashMap<>();
+        Map<String, Integer> commonAncestors = new HashMap<>();
         Commit currentCommit = c;
         while (true) {
             // if a shared Commit node is visited, put it in the returned map.
             // No need to iterate through its ancestors.
             if (iterated.containsKey(currentCommit.getId())) {
-                m.put(currentCommit.getId(), currentCommit.getDepth());
+                commonAncestors.put(currentCommit.getId(), currentCommit.getDepth());
                 break;
             }
-
             // If the initial commit is visited, the iteration is finished.
             List<String> commitParents = currentCommit.getParents();
             if (commitParents.isEmpty()) {
                 break;
             }
-
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
                 Commit secondParent = Commit.getCommit(secondParentId);
-                m.putAll(getCommonAncestorsDepths(secondParent, iterated));
+                commonAncestors.putAll(getCommonAncestorsDepths(secondParent, iterated));
             }
-
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
             currentCommit = Commit.getCommit(firstParentId);
         }
-        return m;
+        return commonAncestors;
     }
 
+    /** Returns the id of the commit with the highest depth in the given commits,
+     * representing the latest common ancestor. */
     static String latestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
         // Moves the commonAncestorsDepths HashMap to a sortable list.
         List<Map.Entry<String, Integer>> sortedList =
@@ -425,6 +422,8 @@ public class Utils {
         return sortedList.get(0).getKey();
     }
 
+    /** Returns all saved Blob ids from two separate commits.
+     * Used as a helper for the merge command. */
     static Map<String, List<String>> allBlobIds(Commit head, Commit other) {
         Map<String, List<String>> ids = new HashMap<>();
 

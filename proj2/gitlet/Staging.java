@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
+/** Represents a gitlet staging object.
+ *  Commits are hashed using message, parents, tracked, and timestamp.
+ *  @author Jonathan Lu
+ */
 public class Staging implements Serializable {
     private Map<String, String> tracked;
     private final Map<String, String> toAdd;
@@ -14,10 +18,6 @@ public class Staging implements Serializable {
         this.tracked = new HashMap<>();
         this.toAdd = new HashMap<>();
         this.toRemove = new HashSet<>();
-    }
-
-    public boolean isClear() {
-        return toAdd.isEmpty() && toRemove.isEmpty();
     }
 
     /** Clears the staging area. */
@@ -63,18 +63,16 @@ public class Staging implements Serializable {
             toRemove.add(filePath);
             Utils.restrictedDelete(file);
         }
-
         toAdd.remove(filePath);
         this.save();
     }
 
-    /** clears the add and removal stages. Updates and returns the tracked stage. */
+    /** Clears the add and removal stages. Updates and returns the tracked stage. */
     public Map<String, String> commit() {
         for (String filePath : toAdd.keySet()) {
             Blob b = new Blob(Utils.getFile(filePath));
             b.save();
         }
-
         for (String filePath : toRemove) {
             tracked.remove(filePath);
         }
@@ -98,6 +96,10 @@ public class Staging implements Serializable {
     /** Saves the current staging object to the Staging file. */
     public void save() {
         Utils.writeObject(Repository.STAGING_FILE, this);
+    }
+
+    public boolean isClear() {
+        return toAdd.isEmpty() && toRemove.isEmpty();
     }
 
     public static Staging readStaging() {

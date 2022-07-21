@@ -9,7 +9,8 @@ import static gitlet.Utils.*;
 import static gitlet.Utils.writeContents;
 
 /** Creates and represents the gitlet repository.
- * Stores all functionality of commands listed in the Main class.
+ *  Stores all functionality of commands listed in the Main class.
+ *  @author Jonathan Lu
  */
 public class Repository {
 
@@ -120,12 +121,16 @@ public class Repository {
         staging.remove(file);
     }
 
-    /** Prints the String stored in the log file. */
+    /** Starting at the head commit, displays information about each commit backwards
+     * until the initial commit, following fist parents only, ignoring merges. */
     public void log() {
         Utils.buildLog();
         System.out.println(Utils.readContentsAsString(LOG));
     }
 
+    /** Creates a new branch with the given name, and points it at the current head commit.
+     * A branch is nothing more than a name for a reference (a SHA-1 identifier) to a
+     * commit node. This command does NOT immediately switch to the newly created branch */
     public void branch(String name) {
         Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD)));
         if (b.getBranchFile().exists()) {
@@ -134,6 +139,9 @@ public class Repository {
         b.save();
     }
 
+    /** Takes all files in the commit at the head of the given branch, and puts them
+     * in the working directory, overwriting the versions of the files that are already
+     * there if they exist. The given branch is set as the active branch. */
     public void checkoutBranch(String name) {
         File branchFile = join(Repository.BRANCHES_DIR, name);
         if (!branchFile.exists()) {
@@ -149,6 +157,9 @@ public class Repository {
         Utils.setActiveBranchName(name);
     }
 
+    /** Takes the version of the file as it exists in the commit with the given id,
+     * and puts it in the working directory, overwriting the version of the file that’s
+     * already there if there is one. The new version of the file is not staged. */
     public static void checkoutCommit(String commitId, String name) {
         overFiveCharacters(commitId);
         File checkout = join(CWD, name);
@@ -167,6 +178,9 @@ public class Repository {
         writeContents(checkout, b.getContent());
     }
 
+    /** Takes the version of the file as it exists in the head commit and puts it
+     * in the working directory, overwriting the version of the file that’s already
+     * there if there is one. The new version of the file is not staged. */
     public void checkoutFile(String name) {
         File checkout = join(CWD, name);
 
@@ -179,6 +193,7 @@ public class Repository {
         writeContents(checkout, b.getContent());
     }
 
+    /** Deletes the branch with the given name. */
     public void rmbranch(String name) {
         File f = Utils.join(Repository.BRANCHES_DIR, name);
         if (!f.exists()) {
@@ -187,14 +202,15 @@ public class Repository {
         if (name.equals(Utils.getActiveBranchName())) {
             Utils.exit("Cannot remove the current branch.");
         }
-
         f.delete();
     }
 
+    /** Displays information about all commits ever made in chronological order. */
     public void globalLog() {
         System.out.println(readContentsAsString(GLOBAL_LOG));
     }
 
+    /** Prints out the ids of all commits that have the given commit message, one per line. */
     public void find(String message) {
         StringBuilder log = new StringBuilder();
         List<String> directoryNames = directoriesIn(OBJECTS_DIR);
@@ -217,6 +233,8 @@ public class Repository {
         }
     }
 
+    /** Displays what branches currently exist, and marks the current branch with *.
+     * Also displays what files have been staged for addition or removal. */
     public void status() {
         StringBuilder status = new StringBuilder();
 
@@ -243,6 +261,8 @@ public class Repository {
         System.out.println(status);
     }
 
+    /** Checks out all files tracked by the given commit, removes files not present in the commit,
+     * and moves the current branch head to the commit node. */
     public void reset(String commitId) {
         overFiveCharacters(commitId);
         Commit resetCommit = Commit.getCommit(commitId);
@@ -255,6 +275,8 @@ public class Repository {
         b.save();
     }
 
+    /** Merges the given branch with the current one.
+     * Automatically commits the merge after handling cases for staging. */
     public void merge(String branch) {
         // Failure cases:
         if (!staging.isClear()) {
@@ -336,14 +358,17 @@ public class Repository {
         commit(message, otherHead.getId(), true);
     }
 
+
     /** Other helper methods: */
 
+    /** Checks if the initial Gitlet directory does not exist. Prints an error message. */
     public void exists() {
         if (!GITLET_DIR.exists()) {
             Utils.exit("Not in an initialized Gitlet directory.");
         }
     }
 
+    /** Handles file overwriting in the case of a merge conflict. */
     public void mergeConflict(String filePath, Blob headBlob, Blob otherBlob) {
         System.out.println("Encountered a merge conflict.");
         StringBuilder contents = new StringBuilder();

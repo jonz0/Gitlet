@@ -1,4 +1,5 @@
 package gitlet;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
@@ -7,8 +8,8 @@ import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
  *  Commits are hashed using message, parents, tracked, and timestamp.
- *
- *  @author TODO
+ *  Used for serializing and storing commits in the Gitlet repository.
+ *  @author Jonathan Lu
  */
 public class Commit implements Serializable {
 
@@ -16,7 +17,7 @@ public class Commit implements Serializable {
     private final String message;
     private final String timestamp;
     private final List<String> parents;
-    /** Tracked: key is the filepath, and value is the ID of the associated Blob object. */
+    /** Tracked: key is the filepath, and value is the ID of the associated blob object. */
     private final Map<String, String> tracked;
     private final String id;
     /** Depth used for the merge command,where the shared node of highest depth
@@ -24,8 +25,8 @@ public class Commit implements Serializable {
     private final int depth;
     private final String branch;
 
-    /** Creates the Commit object.
-     * if parents and tracked are null, creates the initial commit. */
+    /** Creates the commit object.
+     * If parents and tracked are null, creates the initial commit. */
     public Commit(String message, List<String> parents, Map<String, String> tracked,
                   String timestamp, int depth, String branch) {
         this.message = message;
@@ -33,19 +34,15 @@ public class Commit implements Serializable {
         this.depth = depth;
         this.branch = branch;
 
-        if (parents == null) {
-            this.parents = new ArrayList<>();
-        } else {
-            this.parents = parents;
-        }
+        // IF parents is null, tracked is an empty ArrayList.
+        this.parents = Objects.requireNonNullElseGet(parents, ArrayList::new);
 
-        if (tracked == null) {
-            this.tracked = new HashMap<>();
-        } else {
-            this.tracked = tracked;
-        }
+        // IF tracked is null, tracked is an empty HashMap.
+        this.tracked = Objects.requireNonNullElseGet(tracked, HashMap::new);
 
+        // This object's id is the SHA-1 hash of the message, parents, and tracked.
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
+
     }
 
     public String getMessage() {
@@ -60,6 +57,20 @@ public class Commit implements Serializable {
         return tracked;
     }
 
+    public String getBranch() {
+        return branch;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    /** Returns a List of ids of this object's parents. */
+    public List<String> getParents() {
+        return parents;
+    }
+
+    /** Returns a List of file names tracked by this Commit. */
     public Set<String> getTrackedNames() {
         Set<String> trackedNames = new HashSet<>();
         for (String filePath : tracked.keySet()) {
@@ -69,20 +80,8 @@ public class Commit implements Serializable {
         return trackedNames;
     }
 
-    public String getBranch() {
-        return branch;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    /** Returns a List of IDs of this object's parents. */
-    public List<String> getParents() {
-        return parents;
-    }
-
-    /** Returns the Commit object stored in file id. */
+    /** Returns the commit object stored in the file id. Returns null if the blob id
+     * does not reference an existing Commit.*/
     public static Commit getCommit(String id) {
         File commitFile;
         String folderName = id.substring(0, 2);
@@ -106,7 +105,7 @@ public class Commit implements Serializable {
         return Utils.readObject(commitFile, Commit.class);
     }
 
-    /** Constructs the log fot this commit object. */
+    /** Constructs the log for this commit object. */
     public String getLog() {
         StringBuilder log = new StringBuilder();
         log.append("\n===");
@@ -121,6 +120,7 @@ public class Commit implements Serializable {
         return log.toString();
     }
 
+    /** Restores the files tracked by this Commit. Used for checkout. */
     public void restoreTrackedFiles() {
         for (String blobId : tracked.values()) {
             Blob b = Blob.getBlob(blobId);
@@ -128,6 +128,7 @@ public class Commit implements Serializable {
         }
     }
 
+    /** Deletes any files not tracked by this Commit. Used for checkout. */
     public void deleteUntrackedFiles() {
         Commit head = getCommit(readContentsAsString(Repository.HEAD));
         for (String filePath : head.getTracked().keySet()) {
@@ -139,12 +140,11 @@ public class Commit implements Serializable {
         }
     }
 
-    /** Saves the Commit object to the OBJECTS file.
-     * Also calls buildLog, which saves a new log ot he LOG file. */
+    /** Saves the commit object to the OBJECTS file in a directory named
+     * the first two characters of the commit id. */
     public void save() {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-
         File folder = join(Repository.OBJECTS_DIR, folderName);
         folder.mkdir();
         File commitFile = join(folder, fileName);
