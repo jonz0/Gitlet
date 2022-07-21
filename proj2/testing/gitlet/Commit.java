@@ -56,10 +56,6 @@ public class Commit implements Serializable {
         return depth;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
     public Map<String, String> getTracked() {
         return tracked;
     }
@@ -96,7 +92,7 @@ public class Commit implements Serializable {
             return null;
         }
         commitFile = join(folder, fileName);
-        if (fileName.length() < 38) {
+        if (fileName.length() < Utils.UID_LENGTH - 2) {
             List<String> containedCommits = plainFilenamesIn(folder);
             for (String commitId : containedCommits) {
                 if (commitId.startsWith(fileName)) {
@@ -125,18 +121,6 @@ public class Commit implements Serializable {
         return log.toString();
     }
 
-    /** Saves the Commit object to the OBJECTS file.
-     * Also calls buildLog, which saves a new log ot he LOG file. */
-    public void save() {
-        String folderName = id.substring(0, 2);
-        String fileName = id.substring(2);
-
-        File folder = join(Repository.OBJECTS_DIR, folderName);
-        folder.mkdir();
-        File commitFile = join(folder, fileName);
-        Utils.writeObject(commitFile, this);
-    }
-
     public void restoreTrackedFiles() {
         for (String blobId : tracked.values()) {
             Blob b = Blob.getBlob(blobId);
@@ -153,5 +137,17 @@ public class Commit implements Serializable {
                 restrictedDelete(f);
             }
         }
+    }
+
+    /** Saves the Commit object to the OBJECTS file.
+     * Also calls buildLog, which saves a new log ot he LOG file. */
+    public void save() {
+        String folderName = id.substring(0, 2);
+        String fileName = id.substring(2);
+
+        File folder = join(Repository.OBJECTS_DIR, folderName);
+        folder.mkdir();
+        File commitFile = join(folder, fileName);
+        Utils.writeObject(commitFile, this);
     }
 }

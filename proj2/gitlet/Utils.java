@@ -69,8 +69,8 @@ public class Utils {
      *  and throws IllegalArgumentException unless the directory designated by
      *  FILE also contains a directory named .gitlet. */
     static boolean restrictedDelete(File file) {
-        if (!(new File(file.getParentFile(), ".gitlet")).isDirectory()) {
-            throw new IllegalArgumentException("not .gitlet working directory");
+        if (!(new File(file.getParentFile(), "gitlet-temp")).isDirectory()) {
+            throw new IllegalArgumentException("not gitlet-temp working directory");
         }
         if (!file.isDirectory()) {
             return file.delete();
@@ -215,7 +215,7 @@ public class Utils {
     /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
+     *  analogous to the {java.nio.file.Paths.#get(String, String[])}
      *  method. */
     static File join(File first, String... others) {
         return Paths.get(first.getPath(), others).toFile();
@@ -451,5 +451,14 @@ public class Utils {
         if (commitId.length() < 6) {
             exit("The specified commit ID must be at least 6 characters long.");
         }
+    }
+
+    static void checkoutProcesses(Commit c, Staging s) {
+        c.restoreTrackedFiles();
+        c.deleteUntrackedFiles();
+        s.clear();
+        s.setTracked(c.getTracked());
+        s.save();
+        setHead(c.getId());
     }
 }

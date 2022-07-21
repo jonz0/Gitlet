@@ -37,7 +37,7 @@ public class Blob implements Serializable {
         return contentString;
     }
 
-    /** Returns the Commit object stored in file id. */
+    /** Returns the Blob object stored in file id. */
     public static Blob getBlob(String id) {
         File blobFile;
         String folderName = id.substring(0, 2);
@@ -47,7 +47,7 @@ public class Blob implements Serializable {
             return null;
         }
         blobFile = join(folder, fileName);
-        if (fileName.length() < 38) {
+        if (fileName.length() < Utils.UID_LENGTH - 2) {
             List<String> containedBlobs = plainFilenamesIn(folder);
             for (String blobId : containedBlobs) {
                 if (blobId.startsWith(fileName)) {

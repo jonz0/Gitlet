@@ -16,14 +16,14 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
-    public static final File STAGING_FILE = join(GITLET_DIR, "staging");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
-    static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
+    public static final File STAGING_FILE = join(GITLET_DIR, "staging");
+    static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     /** Formatter for the timestamp passed to Commit objects. */
     DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
@@ -145,14 +145,7 @@ public class Repository {
         }
         Commit branchCommit = readObject(branchFile, Branch.class).getHead();
         Utils.checkForUntracked(branchCommit);
-        staging.clear();
-        staging.setTracked(Branch.getBranch(name).getHead().getTracked());
-        staging.save();
-
-        branchCommit.restoreTrackedFiles();
-        branchCommit.deleteUntrackedFiles();
-
-        setHead(readObject(branchFile, Branch.class).getHead().getId());
+        checkoutProcesses(branchCommit, staging);
         Utils.setActiveBranchName(name);
     }
 
@@ -237,40 +230,28 @@ public class Repository {
             }
             status.append(branchName).append("\n");
         }
-
         status.append("\n=== Staged Files ===\n");
         for (String filePath : staging.getToAdd().keySet()) {
             status.append(new File(filePath).getName()).append("\n");
         }
-
         status.append("\n=== Removed Files ===\n");
         for (String filePath : staging.getToRemove()) {
             status.append(new File(filePath).getName()).append("\n");
         }
-
         status.append("\n=== Modifications Not Staged For Commit ===\n");
-
         status.append("\n=== Untracked Files ===\n");
-
         System.out.println(status);
     }
 
     public void reset(String commitId) {
         overFiveCharacters(commitId);
-        Commit c = Commit.getCommit(commitId);
-        if (c == null) {
+        Commit resetCommit = Commit.getCommit(commitId);
+        if (resetCommit == null) {
             Utils.exit("No commit with that id exists.");
         }
-        Utils.checkForUntracked(c);
-        c.deleteUntrackedFiles();
-        c.restoreTrackedFiles();
-
-        staging.clear();
-        staging.setTracked(c.getTracked());
-        staging.save();
-
-        setHead(commitId);
-        Branch b = new Branch(c.getBranch(), c);
+        Utils.checkForUntracked(resetCommit);
+        checkoutProcesses(resetCommit, staging);
+        Branch b = new Branch(resetCommit.getBranch(), resetCommit);
         b.save();
     }
 
@@ -287,6 +268,7 @@ public class Repository {
         Commit head = getHeadCommit();
         Commit otherHead = otherBranch.getHead();
         Utils.checkForUntracked(otherHead);
+
         // Find split point:
         Map<String, Integer> commonAncestors =
                 getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
@@ -299,6 +281,7 @@ public class Repository {
             checkoutBranch(branch);
             Utils.exit("Current branch fast-forwarded.");
         }
+
         Map<String, List<String>> allBlobIds = Utils.allBlobIds(head, otherHead);
         Map<String, String> splitBlobs = splitCommit.getTracked();
         Map<String, String> headBlobs = head.getTracked();
@@ -319,9 +302,10 @@ public class Repository {
                     && !headBlobs.get(filePath).equals(splitBlobs.get(filePath));
             boolean modifiedOther = inOther
                     && !otherBlobs.get(filePath).equals(splitBlobs.get(filePath));
+
             if (inSplit) {
-                // 1. Modified in other but not modified in HEAD: Stage for addition.
-                // 2. Modified in HEAD but not modified in other: Keep HEAD. (Do nothing)
+                // 1. Modified in HEAD but not modified in other: Keep HEAD. (Do nothing)
+                // 2. Modified in other but not modified in HEAD: Stage for addition.
                 if (modifiedOther && !modifiedHead) {
                     writeContents(otherBlob.getSource(), otherBlob.getContent());
                     add(new File(filePath).getName());
@@ -331,17 +315,14 @@ public class Repository {
                     if (!headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
                         mergeConflict(filePath, headBlob, otherBlob);
                     }
-                } else if (modifiedOther && !inHead) {
+                } else if (modifiedHead && !inOther || modifiedOther && !inHead) {
                     // 3.3. MERGE CONFLICT: Modified in other and deleted from other.
-                    mergeConflict(filePath, headBlob, otherBlob);
-                } else if (modifiedHead && !inOther) {
                     // 3.4. MERGE CONFLICT: Modified in head and deleted from other.
                     mergeConflict(filePath, headBlob, otherBlob);
                 } else if (!modifiedHead && !inOther) {
                     // 4. Unmodified in HEAD but deleted from other: Stage for removal.
                     rm(new File(filePath).getName());
-                }
-                // 5. Unmodified in other but deleted from HEAD: Remain removed. (Do nothing)
+                } // 5. Unmodified in other but deleted from HEAD: Remain removed. (Do nothing)
             } else {
                 // 6. Not in split point or other branch, but in HEAD: keep HEAD. (Do nothing)
                 // 7. Not in split point or HEAD, but in other: Stage for addition.
@@ -355,18 +336,7 @@ public class Repository {
         commit(message, otherHead.getId(), true);
     }
 
-    /** Debugging purposes only */
-
-    public void printTrackedInHead() {
-        Commit c = Commit.getCommit(readContentsAsString(HEAD));
-        for (String filePath : c.getTracked().keySet()) {
-            System.out.println(new File(filePath).getName());
-        }
-    }
-
-    public void printCurrentBranch() {
-        System.out.println(getActiveBranchName());
-    }
+    /** Other helper methods: */
 
     public void exists() {
         if (!GITLET_DIR.exists()) {

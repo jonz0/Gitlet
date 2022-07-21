@@ -26,10 +26,6 @@ public class Staging implements Serializable {
         toRemove.clear();
     }
 
-    public void clearTracked() {
-        tracked.clear();
-    }
-
     /** Attaches a file to the staging area and returns true if the staging area changes. */
     public void add(File file) {
         Blob blob = new Blob(file);
@@ -60,11 +56,9 @@ public class Staging implements Serializable {
     public void remove(File file) {
         String filePath = file.getPath();
 
-        // if file is already being tracked
+        // if file is already being tracked:
         if (tracked.containsKey(filePath)) {
-            if (toAdd.containsKey(filePath)) {
-                toAdd.remove(filePath);
-            }
+            toAdd.remove(filePath);
             this.save();
             toRemove.add(filePath);
             Utils.restrictedDelete(file);
@@ -89,6 +83,23 @@ public class Staging implements Serializable {
         return tracked;
     }
 
+    /** Returns the names of all files that are staged for addition and removal. */
+    public Set<String> getStaged() {
+        Set<String> staged = new HashSet<>();
+        for (String filePath : toAdd.keySet()) {
+            staged.add(new File(filePath).getName());
+        }
+        for (String filePath : toRemove) {
+            staged.add(new File(filePath).getName());
+        }
+        return staged;
+    }
+
+    /** Saves the current staging object to the Staging file. */
+    public void save() {
+        Utils.writeObject(Repository.STAGING_FILE, this);
+    }
+
     public static Staging readStaging() {
         return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
@@ -107,26 +118,5 @@ public class Staging implements Serializable {
 
     public Map<String, String> getToAdd() {
         return toAdd;
-    }
-
-    /** Returns the names of all files that are staged for addition and removal. */
-    public Set<String> getStaged() {
-        Set<String> staged = new HashSet<>();
-        for (String filePath : toAdd.keySet()) {
-            staged.add(new File(filePath).getName());
-        }
-        for (String filePath : toRemove) {
-            staged.add(new File(filePath).getName());
-        }
-        return staged;
-    }
-
-    public boolean isTrackingFile(File file) {
-        return tracked.containsKey(file.getPath());
-    }
-
-    /** Saves the current staging object to the Staging file. */
-    public void save() {
-        Utils.writeObject(Repository.STAGING_FILE, this);
     }
 }
