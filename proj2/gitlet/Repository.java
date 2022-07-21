@@ -46,7 +46,7 @@ public class Repository {
 
             String timestamp = dateFormat.format(new Date(0));
             Commit initial = new Commit("initial commit", null, null, timestamp,
-                    0, getActiveBranchName());
+                    0, "master");
             setHead(initial.getId());
             initial.save();
 
