@@ -25,10 +25,6 @@ public class Branch implements Serializable {
     public Commit getHead() {
         return head;
     }
-
-    public void setHead(Commit newHead) {
-        head = newHead;
-    }
     
     public File getBranchFile() {
         return branchFile;
