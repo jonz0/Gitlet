@@ -147,8 +147,8 @@ public class Repository {
         }
         Commit branchCommit = readObject(branchFile, Branch.class).getHead();
         Utils.checkForUntracked(branchCommit);
-        staging.clear();
         staging.setTracked(Branch.getBranch(name).getHead().getTracked());
+        staging.clear();
         staging.save();
 
         branchCommit.restoreTrackedFiles();
@@ -263,11 +263,9 @@ public class Repository {
         Utils.checkForUntracked(c);
         c.deleteUntrackedFiles();
         c.restoreTrackedFiles();
-
         staging.clear();
         staging.setTracked(c.getTracked());
         staging.save();
-
         setHead(commitId);
         Branch b = new Branch(c.getBranch(), c);
         b.save();
