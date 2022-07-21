@@ -23,14 +23,16 @@ public class Commit implements Serializable {
     /** Depth used for the merge command,where the shared node of highest depth
      * corresponds to the least common ancestor of two nodes. */
     private final int depth;
+    private final String branch;
 
     /** Creates the Commit object.
      * if parents and tracked are null, creates the initial commit. */
     public Commit(String message, List<String> parents, Map<String, String> tracked,
-                  String timestamp, int depth) {
+                  String timestamp, int depth, String branch) {
         this.message = message;
         this.timestamp = timestamp;
         this.depth = depth;
+        this.branch = branch;
 
         if (parents == null) {
             this.parents = new ArrayList<>();
@@ -71,6 +73,10 @@ public class Commit implements Serializable {
         }
 
         return trackedNames;
+    }
+
+    public String getBranch() {
+        return branch;
     }
 
     public String getId() {

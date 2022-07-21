@@ -45,7 +45,8 @@ public class Repository {
             BRANCHES_DIR.mkdir();
 
             String timestamp = dateFormat.format(new Date(0));
-            Commit initial = new Commit("initial commit", null, null, timestamp, 0);
+            Commit initial = new Commit("initial commit", null, null, timestamp,
+                    0, getActiveBranchName());
             setHead(initial.getId());
             initial.save();
 
@@ -92,7 +93,7 @@ public class Repository {
 
         // Saves the new staging area and adds the new commit object
         String timestamp = dateFormat.format(new Date());
-        Commit c = new Commit(message, parents, tracked, timestamp, parentDepth + 1);
+        Commit c = new Commit(message, parents, tracked, timestamp, parentDepth + 1, getActiveBranchName());
         c.save();
         setHead(c.getId());
         updateActiveBranchHead(c);
@@ -270,6 +271,7 @@ public class Repository {
         staging.setTracked(c.getTracked());
         c.restoreTrackedFiles();
         setHead(commitId);
+        setActiveBranchName(c.getBranch());
     }
 
     public void merge(String branch) {
