@@ -169,11 +169,30 @@ public class Utils {
             }
         };
 
+    /** Filter out all but directories. */
+    private static final FilenameFilter DIRECTORIES =
+            new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return new File(dir, name).isDirectory();
+                }
+            };
+
     /** Returns a list of the names of all plain files in the directory DIR, in
      *  lexicographic order as Java Strings.  Returns null if DIR does
      *  not denote a directory. */
     static List<String> plainFilenamesIn(File dir) {
         String[] files = dir.list(PLAIN_FILES);
+        if (files == null) {
+            return null;
+        } else {
+            Arrays.sort(files);
+            return Arrays.asList(files);
+        }
+    }
+
+    static List<String> directoriesIn(File dir) {
+        String[] files = dir.list(DIRECTORIES);
         if (files == null) {
             return null;
         } else {

@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
+import static gitlet.Utils.join;
+import static gitlet.Utils.plainFilenamesIn;
+
 public class Blob implements Serializable {
 
     private final byte[] content;
@@ -36,14 +39,35 @@ public class Blob implements Serializable {
 
     /** Returns the Commit object stored in file id. */
     public static Blob getBlob(String id) {
-        File file = Utils.join(Repository.BLOBS_DIR, id);
-        if (!file.exists()) {
+        File blobFile;
+        String folderName = id.substring(0, 2);
+        String fileName = id.substring(2);
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
+        if (!folder.exists()) {
             Utils.exit("No tracked file exists with that id.");
         }
-        return Utils.readObject(file, Blob.class);
+        blobFile = join(folder, fileName);
+        if (fileName.length() < 38) {
+            List<String> containedBlobs = plainFilenamesIn(folder);
+            for (String blobId : containedBlobs) {
+                if (blobId.startsWith(fileName)) {
+                    blobFile = join(folder, blobId);
+                }
+            }
+        }
+        if (!blobFile.exists()) {
+            Utils.exit("No tracked file exists with that id.");
+        }
+        return Utils.readObject(blobFile, Blob.class);
     }
 
     public void save() {
-        Utils.writeObject(Utils.join(Repository.BLOBS_DIR, id), this);
+        String folderName = id.substring(0, 2);
+        String fileName = id.substring(2);
+
+        File folder = join(Repository.OBJECTS_DIR, folderName);
+        folder.mkdir();
+        File blobFile = join(folder, fileName);
+        Utils.writeObject(blobFile, this);
     }
 }

@@ -19,7 +19,6 @@ public class Commit implements Serializable {
     /** Tracked: key is the filepath, and value is the ID of the associated Blob object. */
     private final Map<String, String> tracked;
     private final String id;
-    private final File commitFile;
     /** Depth used for the merge command,where the shared node of highest depth
      * corresponds to the least common ancestor of two nodes. */
     private final int depth;
@@ -47,7 +46,6 @@ public class Commit implements Serializable {
         }
 
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
-        this.commitFile = Utils.join(Repository.COMMITS_DIR, this.id);
     }
 
     public String getMessage() {
@@ -90,22 +88,15 @@ public class Commit implements Serializable {
 
     /** Returns the Commit object stored in file id. */
     public static Commit getCommit(String id) {
-        // Get the first 2 characters and last 38 characters
-        // join COMMITS_DIR, first 2 characters = FIRST_TWO
-            // if file does not exist, no commit with id exists.
-        // join FIRST_TWO, last 38 characters
-            // if file does not exist, no commit with id exists.
-        // if file exists, return readObject(file, Commit.class)
-
         File commitFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.COMMITS_DIR, folderName);
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (!folder.exists()) {
             Utils.exit("No commit with that id exists.");
         }
         commitFile = join(folder, fileName);
-        if (id.length() != 40) {
+        if (fileName.length() < 38) {
             List<String> containedCommits = plainFilenamesIn(folder);
             for (String commitId : containedCommits) {
                 if (commitId.startsWith(fileName)) {
@@ -137,15 +128,10 @@ public class Commit implements Serializable {
     /** Saves the Commit object to the OBJECTS file.
      * Also calls buildLog, which saves a new log ot he LOG file. */
     public void save() {
-        // Get first 2 characters and last 38 characters of id
-        // File FIRST_TWO = join(commitFile, first 2 characters)
-        // FIRST_TWO.mkdir()
-        // File RESTOF_ID = join(FIRST_TWO, last 38 characters)
-        // Utils.writeObject(RESTOF_ID, this)
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
 
-        File folder = join(Repository.COMMITS_DIR, folderName);
+        File folder = join(Repository.OBJECTS_DIR, folderName);
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);
@@ -173,7 +159,7 @@ public class Commit implements Serializable {
         File commitFile;
         String folderName = commitName.substring(0, 2);
         String fileName = commitName.substring(2);
-        File folder = Utils.join(Repository.COMMITS_DIR, folderName);
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (!folder.exists()) {
             return false;
         }

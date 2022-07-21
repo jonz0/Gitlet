@@ -25,14 +25,11 @@ public class Repository {
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
     static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
-    /** Commits and Blobs in the Objects directory. */
-    public static final File COMMITS_DIR = join(OBJECTS_DIR, "commits");
-    public static final File BLOBS_DIR = join(OBJECTS_DIR, "blobs");
     /** Formatter for the timestamp passed to Commit objects. */
     DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
 
     /** Creates a new INITIAL Commit object and saves it to a file.
-     * The file is stored in the COMMITS_DIR with a preset message. */
+     * The file is stored in the OBJECTS_DIR with a preset message. */
     public void init() {
         if (GITLET_DIR.exists()) {
             System.out.println("A Gitlet version-control system already exists "
@@ -40,8 +37,6 @@ public class Repository {
         } else {
             GITLET_DIR.mkdir();
             OBJECTS_DIR.mkdir();
-            COMMITS_DIR.mkdir();
-            BLOBS_DIR.mkdir();
             BRANCHES_DIR.mkdir();
 
             String timestamp = dateFormat.format(new Date(0));
@@ -68,7 +63,7 @@ public class Repository {
     }
 
     /** Creates a new Commit object and saves it to a file.
-     * The file is stored in the COMMITS_DIR. */
+     * The file is stored in the OBJECTS_DIR. */
     public void commit(String message, String secondParentId, boolean merge) {
         if (secondParentId != null) {
             overFiveCharacters(secondParentId);
@@ -210,11 +205,16 @@ public class Repository {
     public void find(String message) {
         StringBuilder log = new StringBuilder();
 
-        for (String commitName : Objects.requireNonNull(plainFilenamesIn(COMMITS_DIR),
-                "Found no commit with that message.")) {
-            Commit c = Commit.getCommit(commitName);
-            if (c.getMessage().equals(message)) {
-                log.append("\n").append(c.getId());
+        List<String> directoryNames = directoriesIn(OBJECTS_DIR);
+
+        for (String directoryName : directoryNames) {
+            File directory = join(OBJECTS_DIR, directoryName);
+            for (String commitName : Objects.requireNonNull(plainFilenamesIn(directory),
+                    "Found no commit with that message.")) {
+                Commit c = Commit.getCommit(commitName);
+                if (c.getMessage().equals(message)) {
+                    log.append("\n").append(c.getId());
+                }
             }
         }
 
