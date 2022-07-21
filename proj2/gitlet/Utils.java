@@ -433,12 +433,17 @@ public class Utils {
         return ids;
     }
 
+    /** Error handling: checks if the given commit id is at least 6 characters long.
+     * Used to ensure multiple object ids are not referenced when using short UIDs. */
     static void overFiveCharacters(String commitId) {
         if (commitId.length() < 6) {
             exit("The specified commit ID must be at least 6 characters long.");
         }
     }
 
+    /** Handler for checkout: restores tracked files, deletes untracked files, clears the
+     * staging area, and points the tracked map to tracked files in the given commit.
+     * Saves the staging area and sets the branch head to the given commit. */
     static void checkoutProcesses(Commit c, Staging s) {
         c.restoreTrackedFiles();
         c.deleteUntrackedFiles();
