@@ -69,8 +69,8 @@ public class Utils {
      *  and throws IllegalArgumentException unless the directory designated by
      *  FILE also contains a directory named .gitlet. */
     static boolean restrictedDelete(File file) {
-        if (!(new File(file.getParentFile(), ".gitlet")).isDirectory()) {
-            throw new IllegalArgumentException("not .gitlet working directory");
+        if (!(new File(file.getParentFile(), "gitlet-temp")).isDirectory()) {
+            throw new IllegalArgumentException("not gitlet-temp working directory");
         }
         if (!file.isDirectory()) {
             return file.delete();
@@ -137,7 +137,7 @@ public class Utils {
     }
 
     /** Return an object of type T read from FILE, casting it to EXPECTEDCLASS.
-     *  Throws IllegalArgumentException in case of problems. */
+     *  Returns null in case of problems. */
     static <T extends Serializable> T readObject(File file,
                                                  Class<T> expectedClass) {
         try {
@@ -148,7 +148,7 @@ public class Utils {
             return result;
         } catch (IOException | ClassCastException
                  | ClassNotFoundException excp) {
-            throw new IllegalArgumentException(excp.getMessage());
+            return null;
         }
     }
 
@@ -171,15 +171,15 @@ public class Utils {
 
     /** Filter out all but directories. */
     private static final FilenameFilter DIRECTORIES =
-            new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return new File(dir, name).isDirectory();
-                }
-            };
+        new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return new File(dir, name).isDirectory();
+            }
+        };
 
     /** Returns a list of the names of all plain files in the directory DIR, in
-     *  lexicographic order as Java Strings.  Returns null if DIR does
+     *  lexicographic order as Java Strings. Returns null if DIR does
      *  not denote a directory. */
     static List<String> plainFilenamesIn(File dir) {
         String[] files = dir.list(PLAIN_FILES);
@@ -191,6 +191,9 @@ public class Utils {
         }
     }
 
+    /** Returns a list of the names of all directories in the directory DIR, in
+     *  lexicographic order as Java Strings. Returns null if DIR does
+     *  not denote a directory. */
     static List<String> directoriesIn(File dir) {
         String[] files = dir.list(DIRECTORIES);
         if (files == null) {
@@ -202,7 +205,7 @@ public class Utils {
     }
 
     /** Returns a list of the names of all plain files in the directory DIR, in
-     *  lexicographic order as Java Strings.  Returns null if DIR does
+     *  lexicographic order as Java Strings. Returns null if DIR does
      *  not denote a directory. */
     static List<String> plainFilenamesIn(String dir) {
         return plainFilenamesIn(new File(dir));

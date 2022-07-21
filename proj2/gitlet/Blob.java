@@ -44,7 +44,7 @@ public class Blob implements Serializable {
         String fileName = id.substring(2);
         File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (!folder.exists()) {
-            Utils.exit("No tracked file exists with that id.");
+            return null;
         }
         blobFile = join(folder, fileName);
         if (fileName.length() < 38) {
@@ -56,7 +56,7 @@ public class Blob implements Serializable {
             }
         }
         if (!blobFile.exists()) {
-            Utils.exit("No tracked file exists with that id.");
+            return null;
         }
         return Utils.readObject(blobFile, Blob.class);
     }

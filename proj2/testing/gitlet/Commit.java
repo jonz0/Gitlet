@@ -93,7 +93,7 @@ public class Commit implements Serializable {
         String fileName = id.substring(2);
         File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (!folder.exists()) {
-            Utils.exit("No commit with that id exists.");
+            return null;
         }
         commitFile = join(folder, fileName);
         if (fileName.length() < 38) {
@@ -105,7 +105,7 @@ public class Commit implements Serializable {
             }
         }
         if (!commitFile.exists()) {
-            Utils.exit("No commit with that id exists.");
+            return null;
         }
         return Utils.readObject(commitFile, Commit.class);
     }
@@ -153,25 +153,5 @@ public class Commit implements Serializable {
                 restrictedDelete(f);
             }
         }
-    }
-
-    public static boolean idExists(String commitName) {
-        File commitFile;
-        String folderName = commitName.substring(0, 2);
-        String fileName = commitName.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
-        if (!folder.exists()) {
-            return false;
-        }
-        commitFile = join(folder, fileName);
-        if (fileName.length() < 38) {
-            List<String> containedCommits = plainFilenamesIn(folder);
-            for (String commitId : containedCommits) {
-                if (commitId.startsWith(fileName)) {
-                    commitFile = join(folder, commitId);
-                }
-            }
-        }
-        return commitFile.exists();
     }
 }

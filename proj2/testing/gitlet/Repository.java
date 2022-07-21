@@ -159,15 +159,15 @@ public class Repository {
     public static void checkoutCommit(String commitId, String name) {
         overFiveCharacters(commitId);
         File checkout = join(CWD, name);
+        Commit c = Commit.getCommit(commitId);
 
-        if (!Commit.idExists(commitId)) {
+        if (c == null) {
             Utils.exit("No commit with that id exists.");
         }
-
-        Commit c = Commit.getCommit(commitId);
         if (!c.getTrackedNames().contains(name)) {
             Utils.exit("File does not exist in that commit.");
         }
+
         Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()));
 
         Utils.checkForUntracked(Commit.getCommit(commitId));
@@ -204,15 +204,13 @@ public class Repository {
 
     public void find(String message) {
         StringBuilder log = new StringBuilder();
-
         List<String> directoryNames = directoriesIn(OBJECTS_DIR);
 
         for (String directoryName : directoryNames) {
             File directory = join(OBJECTS_DIR, directoryName);
-            for (String commitName : Objects.requireNonNull(plainFilenamesIn(directory),
-                    "Found no commit with that message.")) {
-                Commit c = Commit.getCommit(commitName);
-                if (c.getMessage().equals(message)) {
+            for (String commitName : plainFilenamesIn(directory)) {
+                Commit c = Commit.getCommit(directory.getName() + commitName);
+                if (c != null && c.getMessage().equals(message)) {
                     log.append("\n").append(c.getId());
                 }
             }
@@ -259,10 +257,10 @@ public class Repository {
 
     public void reset(String commitId) {
         overFiveCharacters(commitId);
-        if (!Commit.idExists(commitId)) {
+        Commit c = Commit.getCommit(commitId);
+        if (c == null) {
             Utils.exit("No commit with that id exists.");
         }
-        Commit c = Commit.getCommit(commitId);
         Utils.checkForUntracked(c);
         c.deleteUntrackedFiles();
         c.restoreTrackedFiles();
