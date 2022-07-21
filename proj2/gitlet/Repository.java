@@ -16,15 +16,15 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
+    public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
-    public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
-    public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
     static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
+    public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
+    public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     /** Formatter for the timestamp passed to Commit objects. */
     DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
 
@@ -102,7 +102,7 @@ public class Repository {
     /** Unstages the file if it is currently staged for addition. If the file is
      * tracked in the current commit, stage it for removal and removes it from tracking. */
     public void rm(String name) {
-        // If the file does not exist, print a message.
+
         File file = Utils.getFile(name);
         String filePath = file.getPath();
 
@@ -341,7 +341,7 @@ public class Repository {
                     // 4. Unmodified in HEAD but deleted from other: Stage for removal.
                     rm(new File(filePath).getName());
                 }
-                // 5. Unmodified in other but deleted from HEAD: Remain removed.
+                // 5. Unmodified in other but deleted from HEAD: Remain removed. (Do nothing)
             } else {
                 // 6. Not in split point or other branch, but in HEAD: keep HEAD. (Do nothing)
                 // 7. Not in split point or HEAD, but in other: Stage for addition.
