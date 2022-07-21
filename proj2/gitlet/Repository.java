@@ -267,6 +267,7 @@ public class Repository {
         c.deleteUntrackedFiles();
         staging.clear();
         staging.save();
+        staging.setTracked(c.getTracked());
         c.restoreTrackedFiles();
         setHead(commitId);
     }
@@ -275,11 +276,9 @@ public class Repository {
         // Failure cases:
         if (!staging.isClear()) {
             Utils.exit("You have uncommitted changes.");
-        }
-        if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) {
+        } else if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) {
             Utils.exit("A branch with that name does not exist.");
-        }
-        if (branch.equals(getActiveBranchName())) {
+        } else if (branch.equals(getActiveBranchName())) {
             Utils.exit("Cannot merge a branch with itself.");
         }
 
@@ -337,9 +336,7 @@ public class Repository {
 //                    System.out.println("case 3.2");
                     assert true;
                 }
-                // 3. Modified in other and HEAD:
-                // Both files are the same: No changes.
-                // Both files are the different: Merge conflict.
+                // 3. Modified in other and HEAD: if both files are different: Merge conflict.
                 if (modifiedHead && modifiedOther) {
                     if (!headBlobs.get(filePath).equals(otherBlobs.get(filePath))) {
 //                        System.out.println("case 3.2");
