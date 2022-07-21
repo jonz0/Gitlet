@@ -111,9 +111,6 @@ public class Repository {
             if (staging.getToRemove().contains(file.getPath())) {
                 Utils.exit("File " + name + " is already staged for removal.");
             }
-            if (staging.getTracked().containsKey(filePath)) {
-                staging.remove(file);
-            }
         }
 
         if (!staging.getToAdd().containsKey(filePath)
@@ -353,7 +350,7 @@ public class Repository {
                         add(new File(filePath).getName());
                     }
                 }
-                if (modifiedOther && !inHead) {
+                else if (modifiedOther && !inHead) {
 //                    System.out.println("case 3.2");
                     System.out.println("Encountered a merge conflict.");
                     StringBuilder contents = new StringBuilder();
@@ -365,7 +362,7 @@ public class Repository {
                     writeContents(headBlob.getSource(), contents.toString());
                     add(new File(filePath).getName());
                 }
-                if (modifiedHead && !inOther) {
+                else if (modifiedHead && !inOther) {
 //                    System.out.println("case 3.2");
                     System.out.println("Encountered a merge conflict.");
                     StringBuilder contents = new StringBuilder();
@@ -378,12 +375,12 @@ public class Repository {
                     add(new File(filePath).getName());
                 }
                 // 6. Unmodified in HEAD but not present in other: Remove file. (Stage for removal)
-                if (!modifiedHead && !inOther) {
+                else if (!modifiedHead && !inOther) {
 //                    System.out.println("case 6");
                     rm(new File(filePath).getName());
                 }
                 // 7. Unmodified in other but not present in HEAD: Remain removed.
-                if (!modifiedOther && !inHead) {
+                else if (!modifiedOther && !inHead) {
 //                    System.out.println("case 7");
                     assert true;
                 }
@@ -394,7 +391,7 @@ public class Repository {
                     assert true;
                 }
                 // 5. Not in split point or HEAD, but exists in other: Keep other. (Stage for addition)
-                if (!inHead && inOther) {
+                else if (!inHead && inOther) {
 //                    System.out.println("case 5");
                     writeContents(otherBlob.getSource(), otherBlob.getContent());
                     add(new File(filePath).getName());
