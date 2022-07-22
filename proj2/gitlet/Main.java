@@ -17,7 +17,6 @@ public class Main {
         } else {
             switch (args[0]) {
                 case "init" -> {
-                    System.getProperty("user.dir");
                     r.init();
                 }
                 case "add" -> {
@@ -83,6 +82,22 @@ public class Main {
                     r.exists();
                     if (args.length != 2) Utils.exit("Enter a branch to merge.");
                     r.merge(args[1]);
+                }
+                case "add-remote" -> {
+                    r.exists();
+                }
+                case "rm-remote" -> {
+                    r.exists();
+                    System.out.println("");
+                }
+                case "fetch" -> {
+                    r.exists();
+                }
+                case "push" -> {
+                    r.exists();
+                }
+                case "pull" -> {
+                    r.exists();
                 }
                 default -> System.out.println("No command with that name exists.");
             }

@@ -2,6 +2,12 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+import static gitlet.Utils.*;
+import static gitlet.Utils.readObject;
 
 /** Represents a gitlet branch object.
  *  Used for storing branches made in the Gitlet repository.
@@ -15,10 +21,13 @@ public class Branch implements Serializable {
 
     /** Initializes the Branch object and creates an instance of the
      * associated file in BRANCHES_DIR.  */
-    public Branch(String name, Commit head) {
+    public Branch(String name, Commit head, File remote) {
         this.name = name;
         this.head = head;
-        this.branchFile = Utils.join(Repository.BRANCHES_DIR, name);
+        /* Used for saving. If remote is null, the branch is stored locally.
+         * If remote points to a directory, the branch is saved in that directory. */
+        this.branchFile = Utils.join(Objects.requireNonNullElse(remote,
+                Repository.BRANCHES_DIR), name);
     }
 
     /** Returns the Branch object stored in file id. */
@@ -42,5 +51,20 @@ public class Branch implements Serializable {
     
     public File getBranchFile() {
         return branchFile;
+    }
+
+    public Set<Blob> getAllBlobs() {
+        Set<Blob> blobSet = new HashSet<>();
+        for (String commitName : getAllCommitNames()) {
+            Commit c = Commit.getCommit(commitName);
+            for (String blobId : c.getTracked().values()) {
+                blobSet.add(Blob.getBlob(blobId));
+            }
+        }
+        return blobSet;
+    }
+
+    public Set<String> getAllCommitNames() {
+        return Utils.getAncestorsDepths(head).keySet();
     }
 }

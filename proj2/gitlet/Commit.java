@@ -80,8 +80,8 @@ public class Commit implements Serializable {
         return trackedNames;
     }
 
-    /** Returns the commit object stored in the file id. Returns null if the blob id
-     * does not reference an existing Commit.*/
+    /** Returns the commit object stored in the file id.
+     * Returns null if the blob id does not reference an existing Commit. */
     public static Commit getCommit(String id) {
         File commitFile;
         String folderName = id.substring(0, 2);

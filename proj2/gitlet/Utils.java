@@ -313,7 +313,7 @@ public class Utils {
     }
 
     static void updateActiveBranchHead(Commit c) {
-        Branch b = new Branch(getActiveBranchName(), c);
+        Branch b = new Branch(getActiveBranchName(), c, null);
         b.save();
     }
 

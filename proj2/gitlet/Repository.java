@@ -1,12 +1,13 @@
 package gitlet;
 
+import jdk.management.jfr.RemoteRecordingStream;
+
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static gitlet.Utils.*;
-import static gitlet.Utils.writeContents;
 
 /** Creates and represents the gitlet repository.
  *  Stores all functionality of commands listed in the Main class.
@@ -23,6 +24,7 @@ public class Repository {
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File GLOBAL_LOG = join(GITLET_DIR, "global log");
     public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
+    public static final File REMOTES_DIR = join(GITLET_DIR, "remotes");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
     static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
@@ -39,6 +41,7 @@ public class Repository {
             GITLET_DIR.mkdir();
             OBJECTS_DIR.mkdir();
             BRANCHES_DIR.mkdir();
+            REMOTES_DIR.mkdir();
 
             String timestamp = dateFormat.format(new Date(0));
             Commit initial = new Commit("initial commit", null, null, timestamp,
@@ -46,7 +49,7 @@ public class Repository {
             setHead(initial.getId());
             initial.save();
 
-            Branch master = new Branch("master", initial);
+            Branch master = new Branch("master", initial, null);
             master.save();
             Utils.setActiveBranchName("master");
             Utils.buildGlobalLog(initial);
@@ -132,7 +135,7 @@ public class Repository {
      * A branch is nothing more than a name for a reference (a SHA-1 identifier) to a
      * commit node. This command does NOT immediately switch to the newly created branch */
     public void branch(String name) {
-        Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD)));
+        Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD)), null);
         if (b.getBranchFile().exists()) {
             Utils.exit("A branch with that name already exists.");
         }
@@ -151,6 +154,7 @@ public class Repository {
         if (name.equals(Utils.getActiveBranchName())) {
             Utils.exit("No need to checkout the current branch.");
         }
+
         Commit branchCommit = Objects.requireNonNull(readObject(branchFile, Branch.class),
                 "No such branch exists.").getHead();
         Utils.checkForUntracked(branchCommit);
@@ -278,7 +282,7 @@ public class Repository {
         assert resetCommit != null;
         Utils.checkForUntracked(resetCommit);
         checkoutProcesses(resetCommit, staging);
-        Branch b = new Branch(resetCommit.getBranch(), resetCommit);
+        Branch b = new Branch(resetCommit.getBranch(), resetCommit, null);
         b.save();
     }
 
@@ -366,6 +370,69 @@ public class Repository {
         }
         String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
         commit(message, otherHead.getId(), true);
+    }
+
+    public void addRemote(String remoteName, String directoryName) {
+        File remoteDir = join(Repository.REMOTES_DIR, remoteName);
+        if (!remoteDir.exists()) {
+            Utils.exit("A remote with that name already exists.");
+        }
+        remoteDir.mkdir();
+
+        for (String branchName : plainFilenamesIn(BRANCHES_DIR)) {
+            Branch localBranch = Branch.getBranch(branchName);
+            Branch remoteBranch = new Branch(localBranch.getName(), localBranch.getHead(),
+                    join(REMOTES_DIR, branchName));
+            remoteBranch.save();
+        }
+
+//        Map<String, Branch> branches = new HashMap<>();
+//        for (String branchName : plainFilenamesIn(BRANCHES_DIR)) {
+//            Branch localBranch = Branch.getBranch(branchName);
+//            Branch remoteBranch = new Branch(localBranch.getName(), localBranch.getHead(),
+//                    join(REMOTES_DIR, branchName));
+//            branches.put(branchName, remoteBranch);
+//        }
+//        Map<String, Commit> commits = new HashMap<>();
+//        Map<String, Blob> blobs = new HashMap<>();
+//        for (String dirName : directoriesIn(OBJECTS_DIR)) {
+//            File dir = join(OBJECTS_DIR, dirName);
+//            for (String fileName : plainFilenamesIn(dir)) {
+//                File file = join(dir, fileName);
+//                if (Commit.getCommit(file.getName()) != null) {
+//                    Commit c = readObject(file, Commit.class);
+//                    commits.put(c.getId(), c);
+//                } else {
+//                    Blob b = readObject(file, Blob.class);
+//                    blobs.put(b.getId(), b);
+//                }
+//            }
+//        }
+//
+//        Remote r = new Remote(branches, commits, blobs);
+    }
+
+    public void rmRemote(String remoteName) {
+        File f = join(REMOTES_DIR, remoteName);
+        f.delete();
+    }
+
+    public void fetch(String remoteName, String branchName) {
+        // Create branch remoteName/branchName
+        // Get all commits -> copy ones not in the current repository to new branch (?)
+        // Get all blobs -> copy ones not in current repository to new branch (?)
+        // Have this branch point to the current head commit
+    }
+
+    public void push(String remoteName, String branchName) {
+        // Works if the remote branch’s head is in the history of the current local head
+        // Append additional commits of the current branch to the remote branch
+        // Set remote branch head to the current branch head (Fast-forwarding)
+    }
+
+    public void pull(String remoteName, String branchName) {
+        // Fetches the given branch from the remote directory
+        // Merges the branch into the current one
     }
 
 
