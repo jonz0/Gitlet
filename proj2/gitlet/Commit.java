@@ -82,11 +82,16 @@ public class Commit implements Serializable {
 
     /** Returns the commit object stored in the file id.
      * Returns null if the blob id does not reference an existing Commit. */
-    public static Commit getCommit(String id) {
+    public static Commit getCommit(String id, File remote) {
+
         File commitFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
+        if (remote != null) {
+            folder = Utils.join(remote, "objects");
+        }
+
         if (!folder.exists()) {
             return null;
         }
@@ -124,7 +129,7 @@ public class Commit implements Serializable {
     /** Restores the files tracked by this Commit. Used for checkout. */
     public void restoreTrackedFiles() {
         for (String blobId : tracked.values()) {
-            Blob b = Blob.getBlob(blobId);
+            Blob b = Blob.getBlob(blobId, Repository.OBJECTS_DIR);
             assert b != null;
             Utils.writeContents(b.getSource(), (Object) b.getContent());
         }
@@ -132,7 +137,7 @@ public class Commit implements Serializable {
 
     /** Deletes any files not tracked by this Commit. Used for checkout. */
     public void deleteUntrackedFiles() {
-        Commit head = getCommit(readContentsAsString(Repository.HEAD));
+        Commit head = getCommit(readContentsAsString(Repository.HEAD), null);
         assert head != null;
         for (String filePath : head.getTracked().keySet()) {
             if (!getTracked().containsKey(filePath)) {
@@ -145,10 +150,10 @@ public class Commit implements Serializable {
 
     /** Saves the commit object to the OBJECTS file in a directory named
      * the first two characters of the commit id. */
-    public void save() {
+    public void save(File location) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = join(Repository.OBJECTS_DIR, folderName);
+        File folder = join(location, folderName);
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);

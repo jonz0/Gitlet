@@ -263,7 +263,7 @@ public class Utils {
      * adds builds the log of that object, then points to it's parent Commit.
      * Repeats until the parents list is empty, then saves the LOG file. */
     static void buildLog() {
-        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD));
+        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD), null);
         StringBuilder log = new StringBuilder();
 
         while (true) {
@@ -274,7 +274,7 @@ public class Utils {
                 break;
             }
             String newHeadId = currentHeadCommit.getParents().get(0);
-            currentHeadCommit = Commit.getCommit(newHeadId);
+            currentHeadCommit = Commit.getCommit(newHeadId, null);
         }
         log.delete(0, 1);
         writeContents(Repository.LOG, log.toString());
@@ -301,7 +301,7 @@ public class Utils {
     }
 
     static Commit getHeadCommit() {
-        return Commit.getCommit(getHeadId());
+        return Commit.getCommit(getHeadId(), null);
     }
 
     static void setActiveBranchName(String name) {
@@ -313,7 +313,7 @@ public class Utils {
     }
 
     static void updateActiveBranchHead(Commit c) {
-        Branch b = new Branch(getActiveBranchName(), c, null);
+        Branch b = new Branch(getActiveBranchName(), c);
         b.save();
     }
 
@@ -354,12 +354,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId);
+                Commit secondParent = Commit.getCommit(secondParentId, null);
                 m.putAll(getAncestorsDepths(secondParent));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId);
+            currentCommit = Commit.getCommit(firstParentId, null);
         }
         return m;
     }
@@ -385,12 +385,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId);
+                Commit secondParent = Commit.getCommit(secondParentId, null);
                 commonAncestors.putAll(getCommonAncestorsDepths(secondParent, iterated));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId);
+            currentCommit = Commit.getCommit(firstParentId, null);
         }
         return commonAncestors;
     }
@@ -451,5 +451,53 @@ public class Utils {
         s.setTracked(c.getTracked());
         s.save();
         setHead(c.getId());
+    }
+
+    /** Returns a set of all parent commits starting from the commit c.
+     * Used for copying over commits in a remote repository, where Commit c
+     * is the head commit of a given branch.*/
+    public static Set<Commit> getAllCommits(Commit c, File remoteDir) {
+        Set<Commit> s = new HashSet<>();
+        Commit currentCommit = c;
+
+        while (true) {
+            // if a Commit node was visited, no need to iterate through its ancestors.
+            assert currentCommit != null;
+            if (s.contains(currentCommit)) {
+                break;
+            }
+            // Add the current node and its depth.
+            s.add(currentCommit);
+
+            // If the initial commit is visited, the iteration is finished.
+            List<String> commitParents = currentCommit.getParents();
+            if (commitParents.isEmpty()) {
+                break;
+            }
+            // if the Commit node has 2 parents, add the ancestors of its second parent.
+            if (commitParents.size() > 1) {
+                String secondParentId = commitParents.get(1);
+                Commit secondParent = Commit.getCommit(secondParentId, remoteDir);
+                s.addAll(getAllCommits(secondParent, remoteDir));
+            }
+            // Change the current node to its first parent.
+            String firstParentId = commitParents.get(0);
+            currentCommit = Commit.getCommit(firstParentId, remoteDir);
+        }
+        return s;
+    }
+
+    /** Returns a set of all blobs tracked by a set of commits.
+     * Used for copying over blobs from a remote repository, where the commits
+     * are obtained by calling getAllCommits on the head of a given branch. */
+    public static Set<Blob> getAllBlobs(Set<Commit> commits, File remoteDir) {
+        Set<Blob> blobSet = new HashSet<>();
+        for (Commit c : commits) {
+            for (String blobId : c.getTracked().values()){
+                Blob b = Blob.getBlob(blobId, remoteDir);
+                blobSet.add(b);
+            }
+        }
+        return blobSet;
     }
 }

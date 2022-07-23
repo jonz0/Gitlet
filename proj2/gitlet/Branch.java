@@ -21,18 +21,23 @@ public class Branch implements Serializable {
 
     /** Initializes the Branch object and creates an instance of the
      * associated file in BRANCHES_DIR.  */
-    public Branch(String name, Commit head, File remote) {
+    public Branch(String name, Commit head) {
         this.name = name;
         this.head = head;
         /* Used for saving. If remote is null, the branch is stored locally.
          * If remote points to a directory, the branch is saved in that directory. */
-        this.branchFile = Utils.join(Objects.requireNonNullElse(remote,
-                Repository.BRANCHES_DIR), name);
+//        this.branchFile = Utils.join(Objects.requireNonNullElse(remote,
+//                Repository.BRANCHES_DIR), name);
+
+        this.branchFile = Utils.join(Repository.BRANCHES_DIR, name);
     }
 
     /** Returns the Branch object stored in file id. */
-    public static Branch getBranch(String name) {
-        File file = Utils.join(Repository.BRANCHES_DIR, name);
+    public static Branch getBranch(String name, File remote) {
+        File branchDir = Utils.join(Objects.requireNonNullElse(remote,
+                Repository.BRANCHES_DIR), name);
+
+        File file = Utils.join(branchDir, name);
         return Utils.readObject(file, Branch.class);
     }
 
@@ -51,20 +56,5 @@ public class Branch implements Serializable {
     
     public File getBranchFile() {
         return branchFile;
-    }
-
-    public Set<Blob> getAllBlobs() {
-        Set<Blob> blobSet = new HashSet<>();
-        for (String commitName : getAllCommitNames()) {
-            Commit c = Commit.getCommit(commitName);
-            for (String blobId : c.getTracked().values()) {
-                blobSet.add(Blob.getBlob(blobId));
-            }
-        }
-        return blobSet;
-    }
-
-    public Set<String> getAllCommitNames() {
-        return Utils.getAncestorsDepths(head).keySet();
     }
 }

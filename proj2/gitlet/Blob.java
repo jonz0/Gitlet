@@ -44,11 +44,11 @@ public class Blob implements Serializable {
 
     /** Returns the blob object stored in the file id. Returns null if the blob id
      * does not reference an existing Blob.*/
-    public static Blob getBlob(String id) {
+    public static Blob getBlob(String id, File remote) {
         File blobFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
+        File folder = Utils.join(remote, folderName);
         if (!folder.exists()) {
             return null;
         }
@@ -70,10 +70,10 @@ public class Blob implements Serializable {
 
     /** Saves the blob object to the OBJECTS file in a directory named
      * the first two characters of the blob id. */
-    public void save() {
+    public void save(File location) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = join(Repository.OBJECTS_DIR, folderName);
+        File folder = join(location, folderName);
         folder.mkdir();
         File blobFile = join(folder, fileName);
         Utils.writeObject(blobFile, this);
