@@ -83,7 +83,6 @@ public class Commit implements Serializable {
     /** Returns the commit object stored in the file id.
      * Returns null if the blob id does not reference an existing Commit. */
     public static Commit getCommit(String id, File remote) {
-        File commitFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
         File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
@@ -95,13 +94,14 @@ public class Commit implements Serializable {
         if (!folder.exists()) {
             return null;
         }
-        commitFile = join(folder, fileName);
+        File commitFile = join(folder, fileName);
         if (fileName.length() < Utils.UID_LENGTH - 2) {
             List<String> containedCommits = plainFilenamesIn(folder);
             assert containedCommits != null;
             for (String commitId : containedCommits) {
                 if (commitId.startsWith(fileName)) {
                     commitFile = join(folder, commitId);
+                    break;
                 }
             }
         }
@@ -129,7 +129,7 @@ public class Commit implements Serializable {
     /** Restores the files tracked by this Commit. Used for checkout. */
     public void restoreTrackedFiles() {
         for (String blobId : tracked.values()) {
-            Blob b = Blob.getBlob(blobId, Repository.OBJECTS_DIR);
+            Blob b = Blob.getBlob(blobId, null);
             assert b != null;
             Utils.writeContents(b.getSource(), (Object) b.getContent());
         }

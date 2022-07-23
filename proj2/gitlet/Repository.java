@@ -158,6 +158,7 @@ public class Repository {
 
         Commit branchCommit = Objects.requireNonNull(readObject(branchFile, Branch.class),
                 "No such branch exists.").getHead();
+        // System.out.println(branchCommit == null);
         Utils.checkForUntracked(branchCommit);
         checkoutProcesses(branchCommit, staging);
         Utils.setActiveBranchName(name);
@@ -375,7 +376,6 @@ public class Repository {
 
     public void addRemote(String remoteName, String filePath) {
         File remoteFile = join(Repository.REMOTES_DIR, remoteName);
-        filePath = filePath.replace('/', File.separatorChar);
         if (remoteFile.exists()) {
             Utils.exit("A remote with that name already exists.");
         }
@@ -404,26 +404,29 @@ public class Repository {
         }
 
         // Copy over the commits and blobs:
-        String name = remoteName + "/" + branchName;
+        String name = remoteName + "-" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
-        Branch br = new Branch(name, getHeadCommit());
         File branchFile = join(BRANCHES_DIR, name);
-        Utils.writeObject(branchFile, br);
 
         // copy over commits and blobs
         Set<Commit> remoteCommits = Utils.getAllCommits(remoteBranch.getHead(), remotePath);
         for (Commit c : remoteCommits) {
-            if (Commit.getCommit(c.getId(), Repository.OBJECTS_DIR) != null){
+            if (Commit.getCommit(c.getId(), null) == null){
                 c.save(null);
             }
         }
 
         Set<Blob> remoteBlobs = Utils.getAllBlobs(remoteCommits, remotePath);
         for (Blob b : remoteBlobs) {
-            if (Blob.getBlob(b.getId(), Repository.OBJECTS_DIR) != null){
+            if (Blob.getBlob(b.getId(), null) == null){
                 b.save(null);
             }
         }
+
+        Commit remoteHead = remoteBranch.getHead();
+        Commit localBranchHead = Commit.getCommit(remoteHead.getId(), null);
+        Branch br = new Branch(name, localBranchHead);
+        br.save(null);
     }
 
     public void push(String remoteName, String branchName) {
@@ -464,7 +467,7 @@ public class Repository {
 
     public void pull(String remoteName, String branchName) {
         fetch(remoteName, branchName);
-        merge("remoteName" + "/" + "branchName");
+        merge("remoteName" + "-" + "branchName");
     }
 
 
