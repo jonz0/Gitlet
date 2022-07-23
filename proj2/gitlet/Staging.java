@@ -34,7 +34,7 @@ public class Staging implements Serializable {
 
         toRemove.remove(filePath);
         if (tracked.containsKey(filePath) && !toAdd.containsKey(filePath)) {
-            Blob trackedBlob = Blob.getBlob(tracked.get(filePath), Repository.OBJECTS_DIR);
+            Blob trackedBlob = Blob.getBlob(tracked.get(filePath), null);
             assert trackedBlob != null;
             if (blobId.equals(trackedBlob.getId())) {
                 this.save();
@@ -42,7 +42,7 @@ public class Staging implements Serializable {
             }
         }
         if (toAdd.containsKey(filePath)) {
-            Blob addedBlob = Blob.getBlob(toAdd.get(filePath), Repository.OBJECTS_DIR);
+            Blob addedBlob = Blob.getBlob(toAdd.get(filePath), null);
             assert addedBlob != null;
             if (blobId.equals(addedBlob.getId())) {
                 toAdd.remove(filePath);
