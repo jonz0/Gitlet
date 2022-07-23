@@ -83,13 +83,13 @@ public class Commit implements Serializable {
     /** Returns the commit object stored in the file id.
      * Returns null if the blob id does not reference an existing Commit. */
     public static Commit getCommit(String id, File remote) {
-
         File commitFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
         File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
         if (remote != null) {
-            folder = Utils.join(remote, "objects");
+            File objects = Utils.join(remote, "objects");
+            folder = Utils.join(objects, folderName);
         }
 
         if (!folder.exists()) {
@@ -153,7 +153,11 @@ public class Commit implements Serializable {
     public void save(File location) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = join(location, folderName);
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
+        if (location != null) {
+            File objects = Utils.join(location, "objects");
+            folder = Utils.join(objects, folderName);
+        }
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);

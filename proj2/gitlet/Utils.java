@@ -150,7 +150,7 @@ public class Utils {
 
     /** Write OBJ to FILE. */
     static void writeObject(File file, Serializable obj) {
-        writeContents(file, (Object) serialize(obj));
+        writeContents(file, serialize(obj));
     }
 
 
@@ -201,7 +201,12 @@ public class Utils {
     /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {java.nio.file.Paths.#get(String, String[])}
+     *   */
+    static File join(String first, String... others) {
+        return Paths.get(first, others).toFile();
+    }
+
+    /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  method. */
     static File join(File first, String... others) {
         return Paths.get(first.getPath(), others).toFile();
@@ -312,9 +317,11 @@ public class Utils {
         return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 
+    static Branch getActiveBranch() { return Utils.getBranch(getActiveBranchName(), null); }
+
     static void updateActiveBranchHead(Commit c) {
         Branch b = new Branch(getActiveBranchName(), c);
-        b.save();
+        b.save(null);
     }
 
     /** Error handling for when a commit is being checked out. If an untracked file
@@ -500,4 +507,26 @@ public class Utils {
         }
         return blobSet;
     }
+
+    /** Returns the Branch object stored in file id. */
+    public static Branch getBranch(String name, File remote) {
+        File branchDir;
+        branchDir = join(Objects.requireNonNullElse(remote,
+                Repository.BRANCHES_DIR), "branches");
+
+        File file = Utils.join(branchDir, name);
+        return Utils.readObject(file, Branch.class);
+    }
+
+//    public static boolean containsObject(String id, File location) {
+//        String folderName = id.substring(0, 2);
+//        String fileName = id.substring(2);
+//        File objectsDir = join(location, "objects");
+//        File folder = join(objectsDir, folderName);
+//        if (!folder.exists()) {
+//            return false;
+//        }
+//
+//        for ()
+//    }
 }

@@ -85,19 +85,23 @@ public class Main {
                 }
                 case "add-remote" -> {
                     r.exists();
+                    r.addRemote(args[1], args[2]);
                 }
                 case "rm-remote" -> {
                     r.exists();
-                    System.out.println("");
+                    r.rmRemote(args[1]);
                 }
                 case "fetch" -> {
                     r.exists();
+                    r.fetch(args[1], args[2]);
                 }
                 case "push" -> {
                     r.exists();
+                    r.push(args[1], args[2]);
                 }
                 case "pull" -> {
                     r.exists();
+                    r.pull(args[1], args[2]);
                 }
                 default -> System.out.println("No command with that name exists.");
             }

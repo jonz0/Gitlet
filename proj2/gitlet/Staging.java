@@ -73,7 +73,7 @@ public class Staging implements Serializable {
     public Map<String, String> commit() {
         for (String filePath : toAdd.keySet()) {
             Blob b = new Blob(Utils.getFile(filePath));
-            b.save(Repository.OBJECTS_DIR);
+            b.save(null);
         }
         for (String filePath : toRemove) {
             tracked.remove(filePath);

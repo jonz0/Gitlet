@@ -32,17 +32,13 @@ public class Branch implements Serializable {
         this.branchFile = Utils.join(Repository.BRANCHES_DIR, name);
     }
 
-    /** Returns the Branch object stored in file id. */
-    public static Branch getBranch(String name, File remote) {
-        File branchDir = Utils.join(Objects.requireNonNullElse(remote,
-                Repository.BRANCHES_DIR), name);
-
-        File file = Utils.join(branchDir, name);
-        return Utils.readObject(file, Branch.class);
-    }
-
     /** Saves the Branch object to a file (titled name) in the branches folder. */
-    public void save() {
+    public void save(File remote) {
+        File branchFile = join(Repository.BRANCHES_DIR, name);
+        if (remote != null) {
+            File branchFolder = join(remote, "branches");
+            branchFile = join(branchFolder, name);
+        }
         Utils.writeObject(branchFile, this);
     }
 
