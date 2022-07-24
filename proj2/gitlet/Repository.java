@@ -423,6 +423,7 @@ public class Repository {
 
             Commit localCommit = new Commit(c.getMessage(), c.getParents(), newTracked,
                     c.getTimestamp(), c.getDepth(), c.getBranch());
+            localCommit.setId(c.getId());
             localCommit.save(null);
         }
 
@@ -459,8 +460,9 @@ public class Repository {
         }
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
         Set<String> remoteCommitIds = getAllCommitIds(remoteBranch.getHead(), remotePath);
+        Set<String> currentCommitIds = getAllCommitIds(getHeadCommit(), null);
 
-        if (!remoteCommitIds.contains(getHeadId())) {
+        if (!currentCommitIds.contains(remoteBranch.getHead().getId())) {
             Utils.exit("Please pull down remote changes before pushing.");
         }
 
@@ -468,20 +470,32 @@ public class Repository {
         Set<String> localCommitIds = getAllCommitIds(remoteBranch.getHead(), remotePath);
 
         for (String commitId : localCommitIds) {
-            if (remoteCommitIds.contains(commitId)) {
+            if (!remoteCommitIds.contains(commitId)) {
                 Commit localCommit = Commit.getCommit(commitId, null);
-                localCommitIds.remove(commitId);
-                localCommit.save(remotePath);
-                // TODO: convert this local commit to remote paths
 
-                for (String blobName : localCommit.getTracked().values()) {
-                    Blob b = Blob.getBlob(blobName, null);
-                    if (b == null) {
-                        continue;
+                Map<String, String> newTracked = new HashMap<>();
+                for (String filePath : localCommit.getTracked().keySet()) {
+                    String newFilePath = filePath.replace(GITLET_DIR.getParent(), remoteBranch.getHead().getRepoDir().getPath());
+                    newTracked.put(newFilePath, localCommit.getTracked().get(filePath));
+
+                    String blobId = localCommit.getTracked().get(commitId);
+                    Blob localBlob = Blob.getBlob(blobId, null);
+
+                    if (Blob.getBlob(blobId, remotePath) == null){
+                        String oldPath = localBlob.getSource().getPath();
+                        String newPath = oldPath.replace(GITLET_DIR.getParent(), remoteBranch.getHead().getRepoDir().getPath());
+                        Blob remoteBlob = new Blob(new File(newPath));
+                        remoteBlob.setContent(localBlob.getContent());
+                        remoteBlob.setContentString(localBlob.getContentString());
+                        remoteBlob.setId(localBlob.getId());
+                        remoteBlob.save(null);
                     }
-                    b.save(remotePath);
-                    // TODO: convert this blob to remote paths
                 }
+
+                Commit remoteCommit = new Commit(localCommit.getMessage(), localCommit.getParents(), newTracked,
+                        localCommit.getTimestamp(), localCommit.getDepth(), localCommit.getBranch());
+                localCommit.setId(localCommit.getId());
+                localCommit.save(remotePath);
             }
         }
 

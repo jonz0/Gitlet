@@ -19,11 +19,12 @@ public class Commit implements Serializable {
     private final List<String> parents;
     /** Tracked: key is the filepath, and value is the ID of the associated blob object. */
     private final Map<String, String> tracked;
-    private final String id;
+    private String id;
     /** Depth used for the merge command,where the shared node of highest depth
      * corresponds to the least common ancestor of two nodes. */
     private final int depth;
     private final String branch;
+    private File repoDir = null;
 
     /** Creates the commit object.
      * If parents and tracked are null, creates the initial commit. */
@@ -63,6 +64,10 @@ public class Commit implements Serializable {
 
     public String getId() {
         return id;
+    }
+
+    public void setId(String newId) {
+        id = newId;
     }
 
     public String getTimestamp() {
@@ -165,5 +170,10 @@ public class Commit implements Serializable {
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);
+        repoDir = commitFile.getParentFile().getParentFile().getParentFile().getParentFile();
+    }
+
+    public File getRepoDir() {
+        return repoDir;
     }
 }
