@@ -16,7 +16,7 @@ public class Blob implements Serializable {
     private byte[] content;
     private String contentString;
     private String id;
-    private File source;
+    private final File source;
 
     public Blob(File source) {
         this.source = source;
