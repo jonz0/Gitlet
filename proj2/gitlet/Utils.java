@@ -511,8 +511,11 @@ public class Utils {
     /** Returns the Branch object stored in file id. */
     public static Branch getBranch(String name, File remote) {
         File branchDir;
-        branchDir = join(Objects.requireNonNullElse(remote,
-                Repository.GITLET_DIR), "branches");
+        if (remote == null) {
+            branchDir = Repository.BRANCHES_DIR;
+        } else {
+            branchDir = join(remote, "branches");
+        }
 
         File file = Utils.join(branchDir, name);
         return Utils.readObject(file, Branch.class);

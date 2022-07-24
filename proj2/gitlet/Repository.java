@@ -137,7 +137,8 @@ public class Repository {
      * commit node. This command does NOT immediately switch to the newly created branch */
     public void branch(String name) {
         Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD), null));
-        if (b.getBranchFile().exists()) {
+
+        if (join(Repository.BRANCHES_DIR, name).exists()) {
             Utils.exit("A branch with that name already exists.");
         }
         b.save(null);
@@ -158,7 +159,6 @@ public class Repository {
 
         Commit branchCommit = Objects.requireNonNull(readObject(branchFile, Branch.class),
                 "No such branch exists.").getHead();
-        // System.out.println(branchCommit == null);
         Utils.checkForUntracked(branchCommit);
         checkoutProcesses(branchCommit, staging);
         Utils.setActiveBranchName(name);
@@ -398,6 +398,7 @@ public class Repository {
             Utils.exit("Remote directory not found.");
         }
         File remotePath = new File(readContentsAsString(remoteFile));
+
         if (!remotePath.exists()) {
             Utils.exit("Remote directory not found.");
         }
@@ -409,25 +410,37 @@ public class Repository {
         // Copy over the commits and blobs:
         String name = remoteName + "-" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
-        File branchFile = join(BRANCHES_DIR, name);
 
         // copy over commits and blobs
         Set<Commit> remoteCommits = Utils.getAllCommits(remoteBranch.getHead(), remotePath);
+
         for (Commit c : remoteCommits) {
-            if (Commit.getCommit(c.getId(), null) == null){
-                c.save(null);
+            Map<String, String> newTracked = new HashMap<>();
+            for (String filePath : c.getTracked().keySet()) {
+                String newFilePath = filePath.replace(new File(filePath).getParent(), GITLET_DIR.getParent());
+                newTracked.put(newFilePath, c.getTracked().get(filePath));
             }
+
+            Commit localCommit = new Commit(c.getMessage(), c.getParents(), newTracked,
+                    c.getTimestamp(), c.getDepth(), c.getBranch());
+            localCommit.save(null);
         }
 
         Set<Blob> remoteBlobs = Utils.getAllBlobs(remoteCommits, remotePath);
         for (Blob b : remoteBlobs) {
             if (Blob.getBlob(b.getId(), null) == null){
-                b.save(null);
+                String oldSourcePath = b.getSource().getParent();
+                String newPath = b.getSource().getPath().replace(oldSourcePath, GITLET_DIR.getParent());
+                Blob localBlob = new Blob(new File(newPath));
+                localBlob.setContent(b.getContent());
+                localBlob.setContentString(b.getContentString());
+                localBlob.setId(b.getId());
+                localBlob.save(null);
             }
         }
 
-        Commit remoteHead = remoteBranch.getHead();
-        Commit localBranchHead = Commit.getCommit(remoteHead.getId(), null);
+        String remoteId = remoteBranch.getHead().getId();
+        Commit localBranchHead = Commit.getCommit(remoteId, null);
         Branch br = new Branch(name, localBranchHead);
         br.save(null);
     }

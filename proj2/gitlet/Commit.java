@@ -65,6 +65,10 @@ public class Commit implements Serializable {
         return id;
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
     /** Returns a List of ids of this object's parents. */
     public List<String> getParents() {
         return parents;

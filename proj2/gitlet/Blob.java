@@ -13,33 +13,23 @@ import static gitlet.Utils.plainFilenamesIn;
  */
 public class Blob implements Serializable {
 
-    private final byte[] content;
-    private final String contentString;
-    private final String id;
-    private final File source;
+    private byte[] content;
+    private String contentString;
+    private String id;
+    private File source;
 
     public Blob(File source) {
-        this.content = Utils.readContents(source);
-        this.contentString = Utils.readContentsAsString(source);
         this.source = source;
-        // This object's id is the SHA-1 hash of the source file path and content.
-        this.id = Utils.sha1(source.getPath(), this.content);
-    }
+        this.content = null;
+        this.contentString = null;
+        this.id = null;
 
-    public File getSource() {
-        return source;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public byte[] getContent() {
-        return content;
-    }
-
-    public String getContentString() {
-        return contentString;
+        if (source.exists()) {
+            this.content = Utils.readContents(source);
+            this.contentString = Utils.readContentsAsString(source);
+            // This object's id is the SHA-1 hash of the source file path and content.
+            this.id = Utils.sha1(source.getPath(), this.content);
+        }
     }
 
     /** Returns the blob object stored in the file id. Returns null if the blob id
@@ -86,5 +76,33 @@ public class Blob implements Serializable {
         folder.mkdir();
         File blobFile = join(folder, fileName);
         Utils.writeObject(blobFile, this);
+    }
+
+    public File getSource() {
+        return source;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String newId) {
+        id = newId;
+    }
+
+    public byte[] getContent() {
+        return content;
+    }
+
+    public void setContent(byte[] newContent) {
+        content = newContent;
+    }
+
+    public String getContentString() {
+        return contentString;
+    }
+
+    public void setContentString(String newContentString) {
+        contentString = newContentString;
     }
 }
