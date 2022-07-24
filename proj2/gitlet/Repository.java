@@ -398,6 +398,9 @@ public class Repository {
             Utils.exit("Remote directory not found.");
         }
         File remotePath = new File(readContentsAsString(remoteFile));
+        if (!remotePath.exists()) {
+            Utils.exit("Remote directory not found.");
+        }
         File remoteBranches = Utils.join(remotePath, "branches");
         if (!plainFilenamesIn(remoteBranches).contains(branchName)) {
             Utils.exit("That remote does not have that branch.");
@@ -437,25 +440,34 @@ public class Repository {
         if (!remoteFile.exists()) {
             Utils.exit("Remote directory not found.");
         }
-
         File remotePath = new File(readContentsAsString(remoteFile));
+        if (!remotePath.exists()) {
+            Utils.exit("Remote directory not found.");
+        }
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
-        Set<Commit> remoteCommits = getAllCommits(remoteBranch.getHead(), remotePath);
+        Set<String> remoteCommitIds = getAllCommitIds(remoteBranch.getHead(), remotePath);
+
+        if (!remoteCommitIds.contains(getHeadId())) {
+            Utils.exit("Please pull down remote changes before pushing.");
+        }
 
         Branch localBranch = Utils.getBranch(getActiveBranchName(), null);
-        Set<Commit> localCommits = getAllCommits(remoteBranch.getHead(), remotePath);
+        Set<String> localCommitIds = getAllCommitIds(remoteBranch.getHead(), remotePath);
 
-        for (Commit c : localCommits) {
-            if (remoteCommits.contains(c)) {
-                localCommits.remove(c);
-                c.save(remotePath);
+        for (String commitId : localCommitIds) {
+            if (remoteCommitIds.contains(commitId)) {
+                Commit localCommit = Commit.getCommit(commitId, null);
+                localCommitIds.remove(commitId);
+                localCommit.save(remotePath);
+                // TODO: convert this local commit to remote paths
 
-                for (String blobName : c.getTracked().values()) {
+                for (String blobName : localCommit.getTracked().values()) {
                     Blob b = Blob.getBlob(blobName, null);
                     if (b == null) {
                         continue;
                     }
                     b.save(remotePath);
+                    // TODO: convert this blob to remote paths
                 }
             }
         }

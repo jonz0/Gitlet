@@ -517,4 +517,35 @@ public class Utils {
         File file = Utils.join(branchDir, name);
         return Utils.readObject(file, Branch.class);
     }
+
+    public static Set<String> getAllCommitIds(Commit c, File remoteDir) {
+        Set<String> s = new HashSet<>();
+        Commit currentCommit = c;
+
+        while (true) {
+            // if a Commit node was visited, no need to iterate through its ancestors.
+            assert currentCommit != null;
+            if (s.contains(currentCommit.getId())) {
+                break;
+            }
+            // Add the current node and its depth.
+            s.add(currentCommit.getId());
+
+            // If the initial commit is visited, the iteration is finished.
+            List<String> commitParents = currentCommit.getParents();
+            if (commitParents.isEmpty()) {
+                break;
+            }
+            // if the Commit node has 2 parents, add the ancestors of its second parent.
+            if (commitParents.size() > 1) {
+                String secondParentId = commitParents.get(1);
+                Commit secondParent = Commit.getCommit(secondParentId, remoteDir);
+                s.addAll(getAllCommitIds(secondParent, remoteDir));
+            }
+            // Change the current node to its first parent.
+            String firstParentId = commitParents.get(0);
+            currentCommit = Commit.getCommit(firstParentId, remoteDir);
+        }
+        return s;
+    }
 }
