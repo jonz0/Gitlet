@@ -97,7 +97,7 @@ public class Repository {
         // Saves the new staging area and adds the new commit object
         String timestamp = dateFormat.format(new Date());
         Commit c = new Commit(message, parents, tracked, timestamp, parentDepth + 1,
-                getActiveBranchName(null));
+                getActiveBranchName());
         c.save(null);
         setHead(c.getId());
         updateActiveBranchHead(c);
@@ -152,7 +152,7 @@ public class Repository {
             Utils.exit("No such branch exists.");
         }
 
-        if (name.equals(Utils.getActiveBranchName(null))) {
+        if (name.equals(Utils.getActiveBranchName())) {
             Utils.exit("No need to checkout the current branch.");
         }
 
@@ -209,7 +209,7 @@ public class Repository {
         if (!f.exists()) {
             Utils.exit("A branch with that name does not exist.");
         }
-        if (name.equals(Utils.getActiveBranchName(null))) {
+        if (name.equals(Utils.getActiveBranchName())) {
             Utils.exit("Cannot remove the current branch.");
         }
         f.delete();
@@ -255,7 +255,7 @@ public class Repository {
             if (branchName.equals("active branch")) {
                 continue;
             }
-            if (branchName.equals(Utils.getActiveBranchName(null))) {
+            if (branchName.equals(Utils.getActiveBranchName())) {
                 status.append("*");
             }
             status.append(branchName).append("\n");
@@ -296,7 +296,7 @@ public class Repository {
             Utils.exit("You have uncommitted changes.");
         } else if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) {
             Utils.exit("A branch with that name does not exist.");
-        } else if (branch.equals(getActiveBranchName(null))) {
+        } else if (branch.equals(getActiveBranchName())) {
             Utils.exit("Cannot merge a branch with itself.");
         }
         Branch otherBranch = Utils.getBranch(branch, null);
@@ -345,7 +345,6 @@ public class Repository {
                 if (modifiedOther && !modifiedHead) {
                     assert otherBlob != null;
                     writeContents(otherBlob.getSource(), (Object) otherBlob.getContent());
-                    System.out.println("*************** CASE 2");
                     add(new File(filePath).getName());
                 } else if (modifiedHead && modifiedOther) {
                     // 3.1. Modified in other and HEAD, files are the same: keep file. (Do nothing)
@@ -367,19 +366,16 @@ public class Repository {
                 if (!inHead && inOther) {
                     assert otherBlob != null;
                     writeContents(otherBlob.getSource(), (Object) otherBlob.getContent());
-                    System.out.println("*************** CASE 7");
-                    System.out.println(filePath);
                     add(new File(filePath).getName());
                 }
             }
         }
-        String message = "Merged " + branch + " into " + getActiveBranchName(null) + ".";
+        String message = "Merged " + branch + " into " + getActiveBranchName() + ".";
         commit(message, otherHead.getId(), true);
     }
 
     public void addRemote(String remoteName, String filePath) {
         File remoteFile = join(Repository.REMOTES_DIR, remoteName);
-        filePath.replace('/', File.separatorChar);
         if (remoteFile.exists()) {
             Utils.exit("A remote with that name already exists.");
         }
@@ -410,30 +406,20 @@ public class Repository {
         // Copy over the commits and blobs:
         String name = remoteName + "-" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
+        File branchFile = join(BRANCHES_DIR, name);
 
         // copy over commits and blobs
         Set<Commit> remoteCommits = Utils.getAllCommits(remoteBranch.getHead(), remotePath);
         for (Commit c : remoteCommits) {
             if (Commit.getCommit(c.getId(), null) == null){
-                Map<String, String> newTracked = c.getTracked();
-                for (String filePath : newTracked.keySet()) {
-                    String newPath = filePath.replace(remotePath.toString(), GITLET_DIR.toString());
-                    newTracked.put(newPath, c.getTracked().get(filePath));
-                }
-                Commit newCommit = new Commit(c.getMessage(), c.getParents(), newTracked,
-                        c.getTimestamp(), c.getDepth(), c.getBranch());
-                newCommit.setId(c.getId());
-                newCommit.save(null);
+                c.save(null);
             }
         }
 
         Set<Blob> remoteBlobs = Utils.getAllBlobs(remoteCommits, remotePath);
         for (Blob b : remoteBlobs) {
             if (Blob.getBlob(b.getId(), null) == null){
-                String remoteSource = b.getSource().toString();
-                String newSource = remoteSource.replace(remotePath.toString(), GITLET_DIR.toString());
-                Blob newBlob = new Blob(new File(newSource));
-                newBlob.save(null);
+                b.save(null);
             }
         }
 
@@ -441,11 +427,6 @@ public class Repository {
         Commit localBranchHead = Commit.getCommit(remoteHead.getId(), null);
         Branch br = new Branch(name, localBranchHead);
         br.save(null);
-
-
-        if (getActiveBranchName(null).equals(name)) {
-            setHead(localBranchHead.getId());
-        }
     }
 
     public void push(String remoteName, String branchName) {
@@ -460,34 +441,33 @@ public class Repository {
         File remotePath = new File(readContentsAsString(remoteFile));
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
         Set<Commit> remoteCommits = getAllCommits(remoteBranch.getHead(), remotePath);
-        Set<Commit> localCommits = getAllCommits(getHeadCommit(), null);
+
+        Branch localBranch = Utils.getBranch(getActiveBranchName(), null);
+        Set<Commit> localCommits = getAllCommits(remoteBranch.getHead(), remotePath);
 
         for (Commit c : localCommits) {
-            if (!remoteCommits.contains(c)) {
+            if (remoteCommits.contains(c)) {
+                localCommits.remove(c);
                 c.save(remotePath);
+
                 for (String blobName : c.getTracked().values()) {
                     Blob b = Blob.getBlob(blobName, null);
-                    assert b != null;
+                    if (b == null) {
+                        continue;
+                    }
                     b.save(remotePath);
                 }
             }
         }
 
-        Commit newHead = Commit.getCommit(getHeadId(), remotePath);
-        Branch newRemoteBranch = new Branch(branchName, newHead);
+        Commit newHead = Commit.getCommit(getActiveBranchName(), remotePath);
+        Branch newRemoteBranch = new Branch(getActiveBranchName(), newHead);
         newRemoteBranch.save(remotePath);
-
-        // If the remote active branch is the same as the pushed branch,
-        // set a new head in the remote repository.
-        if (getActiveBranchName(remotePath).equals(branchName)) {
-            File remoteHead = join(remotePath, "head");
-            writeContents(remoteHead, newHead.getId());
-        }
     }
 
     public void pull(String remoteName, String branchName) {
         fetch(remoteName, branchName);
-        merge(remoteName + "-" + branchName);
+        merge("remoteName" + "-" + "branchName");
     }
 
 
@@ -506,7 +486,7 @@ public class Repository {
         StringBuilder contents = new StringBuilder();
         contents.append("<<<<<<< HEAD\n");
         if (headBlob != null) {
-            contents.append(readContentsAsString(headBlob.getSource()));
+            contents.append(headBlob.getContentString());
         }
         contents.append("=======\n");
         if (otherBlob != null) {

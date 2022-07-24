@@ -2,8 +2,12 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import static gitlet.Utils.*;
+import static gitlet.Utils.readObject;
 
 /** Represents a gitlet branch object.
  *  Used for storing branches made in the Gitlet repository.
@@ -20,7 +24,12 @@ public class Branch implements Serializable {
     public Branch(String name, Commit head) {
         this.name = name;
         this.head = head;
-        this.branchFile = join(Repository.BRANCHES_DIR, name);
+        /* Used for saving. If remote is null, the branch is stored locally.
+         * If remote points to a directory, the branch is saved in that directory. */
+//        this.branchFile = Utils.join(Objects.requireNonNullElse(remote,
+//                Repository.BRANCHES_DIR), name);
+
+        this.branchFile = Utils.join(Repository.BRANCHES_DIR, name);
     }
 
     /** Saves the Branch object to a file (titled name) in the branches folder. */
@@ -33,9 +42,15 @@ public class Branch implements Serializable {
         Utils.writeObject(branchFile, this);
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-    public Commit getHead() { return head; }
-
-    public File getBranchFile() { return branchFile; }
+    public Commit getHead() {
+        return head;
+    }
+    
+    public File getBranchFile() {
+        return branchFile;
+    }
 }

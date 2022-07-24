@@ -268,7 +268,7 @@ public class Utils {
      * adds builds the log of that object, then points to it's parent Commit.
      * Repeats until the parents list is empty, then saves the LOG file. */
     static void buildLog() {
-        Commit currentHeadCommit = getHeadCommit();
+        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD), null);
         StringBuilder log = new StringBuilder();
 
         while (true) {
@@ -313,17 +313,14 @@ public class Utils {
         Utils.writeContents(Repository.ACTIVE_BRANCH, name);
     }
 
-    static String getActiveBranchName(File remote) {
-        if (remote == null) {
-            return readContentsAsString(Repository.ACTIVE_BRANCH);
-        } else {
-            File branches = join(remote, "branches");
-            return readContentsAsString(join(branches, "active branch"));
-        }
+    static String getActiveBranchName() {
+        return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 
+    static Branch getActiveBranch() { return Utils.getBranch(getActiveBranchName(), null); }
+
     static void updateActiveBranchHead(Commit c) {
-        Branch b = new Branch(getActiveBranchName(null), c);
+        Branch b = new Branch(getActiveBranchName(), c);
         b.save(null);
     }
 
@@ -332,8 +329,7 @@ public class Utils {
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
             if (!getHeadCommit().getTracked().containsKey(filePath)) {
-                File localFile = join(Repository.CWD, new File(filePath).getName());
-                if (localFile.exists()) {
+                if (new File(filePath).exists()) {
                     exit("There is an untracked file in the way; delete it, "
                             + "or add and commit it first.");
                 }
@@ -467,7 +463,7 @@ public class Utils {
     /** Returns a set of all parent commits starting from the commit c.
      * Used for copying over commits in a remote repository, where Commit c
      * is the head commit of a given branch.*/
-    public static Set<Commit> getAllCommits(Commit c, File remote) {
+    public static Set<Commit> getAllCommits(Commit c, File remoteDir) {
         Set<Commit> s = new HashSet<>();
         Commit currentCommit = c;
 
@@ -488,12 +484,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, remote);
-                s.addAll(getAllCommits(secondParent, remote));
+                Commit secondParent = Commit.getCommit(secondParentId, remoteDir);
+                s.addAll(getAllCommits(secondParent, remoteDir));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, remote);
+            currentCommit = Commit.getCommit(firstParentId, remoteDir);
         }
         return s;
     }
@@ -514,24 +510,11 @@ public class Utils {
 
     /** Returns the Branch object stored in file id. */
     public static Branch getBranch(String name, File remote) {
-        File branchDir = Repository.BRANCHES_DIR;
-        if (remote != null) {
-            branchDir = Utils.join(remote, "branches");
-        }
+        File branchDir;
+        branchDir = join(Objects.requireNonNullElse(remote,
+                Repository.GITLET_DIR), "branches");
 
         File file = Utils.join(branchDir, name);
         return Utils.readObject(file, Branch.class);
     }
-
-//    public static boolean containsObject(String id, File location) {
-//        String folderName = id.substring(0, 2);
-//        String fileName = id.substring(2);
-//        File objectsDir = join(location, "objects");
-//        File folder = join(objectsDir, folderName);
-//        if (!folder.exists()) {
-//            return false;
-//        }
-//
-//        for ()
-//    }
 }

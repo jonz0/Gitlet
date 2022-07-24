@@ -17,7 +17,6 @@ public class Blob implements Serializable {
     private final String contentString;
     private final String id;
     private final File source;
-    private final String fileName;
 
     public Blob(File source) {
         this.content = Utils.readContents(source);
@@ -25,7 +24,22 @@ public class Blob implements Serializable {
         this.source = source;
         // This object's id is the SHA-1 hash of the source file path and content.
         this.id = Utils.sha1(source.getPath(), this.content);
-        this.fileName = source.getName();
+    }
+
+    public File getSource() {
+        return source;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public byte[] getContent() {
+        return content;
+    }
+
+    public String getContentString() {
+        return contentString;
     }
 
     /** Returns the blob object stored in the file id. Returns null if the blob id
@@ -73,22 +87,4 @@ public class Blob implements Serializable {
         File blobFile = join(folder, fileName);
         Utils.writeObject(blobFile, this);
     }
-
-    public File getSource() {
-        return source;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public byte[] getContent() {
-        return content;
-    }
-
-    public String getContentString() {
-        return contentString;
-    }
-
-    public String getFileName() { return fileName; }
 }

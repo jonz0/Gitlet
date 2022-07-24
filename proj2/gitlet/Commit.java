@@ -19,7 +19,7 @@ public class Commit implements Serializable {
     private final List<String> parents;
     /** Tracked: key is the filepath, and value is the ID of the associated blob object. */
     private final Map<String, String> tracked;
-    private String id;
+    private final String id;
     /** Depth used for the merge command,where the shared node of highest depth
      * corresponds to the least common ancestor of two nodes. */
     private final int depth;
@@ -43,6 +43,31 @@ public class Commit implements Serializable {
         // This object's id is the SHA-1 hash of the message, parents, and tracked.
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
 
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public Map<String, String> getTracked() {
+        return tracked;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    /** Returns a List of ids of this object's parents. */
+    public List<String> getParents() {
+        return parents;
     }
 
     /** Returns a List of file names tracked by this Commit. */
@@ -137,33 +162,4 @@ public class Commit implements Serializable {
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);
     }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    public Map<String, String> getTracked() {
-        return tracked;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getTimestamp() { return timestamp; }
-
-    /** Returns a List of ids of this object's parents. */
-    public List<String> getParents() {
-        return parents;
-    }
-
-    public void setId(String newId) { id = newId; }
 }
