@@ -1,7 +1,5 @@
 package gitlet;
 
-import jdk.management.jfr.RemoteRecordingStream;
-
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
