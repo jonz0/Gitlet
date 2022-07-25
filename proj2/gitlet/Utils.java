@@ -158,11 +158,11 @@ public class Utils {
 
     /** Filter out all but plain files. */
     private static final FilenameFilter PLAIN_FILES =
-            (dir, name) -> new File(dir, name).isFile();
+        (dir, name) -> new File(dir, name).isFile();
 
     /** Filter out all but directories. */
     private static final FilenameFilter DIRECTORIES =
-            (dir, name) -> new File(dir, name).isDirectory();
+        (dir, name) -> new File(dir, name).isDirectory();
 
     /** Returns a list of the names of all plain files in the directory DIR, in
      *  lexicographic order as Java Strings. Returns null if DIR does
@@ -290,8 +290,8 @@ public class Utils {
         if (!Repository.GLOBAL_LOG.exists()) {
             writeContents(Repository.GLOBAL_LOG, "");
         }
-        String log = readContentsAsString(Repository.GLOBAL_LOG) +
-                c.getLog().substring(1) + "\n";
+        String log = readContentsAsString(Repository.GLOBAL_LOG)
+                + c.getLog().substring(1) + "\n";
         writeContents(Repository.GLOBAL_LOG, log);
     }
 
@@ -317,7 +317,9 @@ public class Utils {
         return readContentsAsString(Repository.ACTIVE_BRANCH);
     }
 
-    static Branch getActiveBranch() { return Utils.getBranch(getActiveBranchName(), null); }
+    static Branch getActiveBranch() {
+        return Utils.getBranch(getActiveBranchName(), null);
+    }
 
     static void updateActiveBranchHead(Commit c) {
         Branch b = new Branch(getActiveBranchName(), c);
@@ -500,7 +502,7 @@ public class Utils {
     public static Set<Blob> getAllBlobs(Set<Commit> commits, File remoteDir) {
         Set<Blob> blobSet = new HashSet<>();
         for (Commit c : commits) {
-            for (String blobId : c.getTracked().values()){
+            for (String blobId : c.getTracked().values()) {
                 Blob b = Blob.getBlob(blobId, remoteDir);
                 blobSet.add(b);
             }

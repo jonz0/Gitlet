@@ -94,7 +94,7 @@ public class Commit implements Serializable {
     public static Commit getCommit(String id, File remote) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (remote != null) {
             File objects = Utils.join(remote, "objects");
             folder = Utils.join(objects, folderName);
@@ -162,7 +162,7 @@ public class Commit implements Serializable {
     public void save(File location) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);;
+        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
         if (location != null) {
             File objects = Utils.join(location, "objects");
             folder = Utils.join(objects, folderName);

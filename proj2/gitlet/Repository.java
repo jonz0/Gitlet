@@ -272,13 +272,15 @@ public class Repository {
             File f = new File(filePath);
             String fileName = f.getName();
             if (!cwdFiles.contains(fileName)) {
-                if (!staging.getToRemove().contains(filePath) && !staging.getToAdd().containsKey(filePath)) {
+                if (!staging.getToRemove().contains(filePath)
+                        && !staging.getToAdd().containsKey(filePath)) {
                     status.append(fileName).append(" ").append("(deleted)\n");
                 }
                 break;
             }
             Blob tempBlob = new Blob(f);
-            if (!tempBlob.getId().equals(Blob.getBlob(staging.getTracked().get(filePath), null).getId())) {
+            if (!tempBlob.getId().equals(Blob.getBlob(staging.getTracked().get(filePath),
+                    null).getId())) {
                 status.append(fileName).append(" ").append("(modified)\n");
             }
         }
@@ -292,7 +294,8 @@ public class Repository {
         for (String file : cwdFiles) {
             String filePath = getFile(file).getPath();
             if (!staging.getTracked().keySet().contains(filePath)) {
-                if (!staging.getToRemove().contains(filePath) && !staging.getToAdd().containsKey(filePath)) {
+                if (!staging.getToRemove().contains(filePath)
+                        && !staging.getToAdd().containsKey(filePath)) {
                     status.append(getFile(file).getName()).append("\n");
                 }
             }
@@ -449,7 +452,8 @@ public class Repository {
         for (Commit c : remoteCommits) {
             Map<String, String> newTracked = new HashMap<>();
             for (String filePath : c.getTracked().keySet()) {
-                String newFilePath = filePath.replace(new File(filePath).getParent(), GITLET_DIR.getParent());
+                String newFilePath = filePath.replace(new File(filePath).getParent(),
+                        GITLET_DIR.getParent());
                 newTracked.put(newFilePath, c.getTracked().get(filePath));
             }
             List<String> newParents = c.getParents();
@@ -463,7 +467,8 @@ public class Repository {
         for (Blob b : remoteBlobs) {
             if (Blob.getBlob(b.getId(), null) == null){
                 String oldSourcePath = b.getSource().getParent();
-                String newPath = b.getSource().getPath().replace(oldSourcePath, GITLET_DIR.getParent());
+                String newPath = b.getSource().getPath().replace(oldSourcePath,
+                        GITLET_DIR.getParent());
                 Blob localBlob = new Blob(new File(newPath));
                 localBlob.setContent(b.getContent());
                 localBlob.setContentString(b.getContentString());
@@ -514,16 +519,18 @@ public class Repository {
                 * the remote directory, and not the local one. */
                 Map<String, String> newTracked = new HashMap<>();
                 for (String filePath : localCommit.getTracked().keySet()) {
-                    String newFilePath = filePath.replace(GITLET_DIR.getParent(), remoteBranch.getHead().getRepoDir().getPath());
+                    String newFilePath = filePath.replace(GITLET_DIR.getParent(),
+                            remoteBranch.getHead().getRepoDir().getPath());
                     newTracked.put(newFilePath, localCommit.getTracked().get(filePath));
 
                     for (String blobPath : localCommit.getTracked().keySet()) {
                         String blobId = localCommit.getTracked().get(blobPath);
                         Blob localBlob = Blob.getBlob(blobId, null);
 
-                        if (Blob.getBlob(blobId, remotePath) == null){
+                        if (Blob.getBlob(blobId, remotePath) == null) {
                             String oldPath = localBlob.getSource().getPath();
-                            String newPath = oldPath.replace(GITLET_DIR.getParent(), remoteBranch.getHead().getRepoDir().getPath());
+                            String newPath = oldPath.replace(GITLET_DIR.getParent(),
+                                    remoteBranch.getHead().getRepoDir().getPath());
                             Blob remoteBlob = new Blob(new File(newPath));
                             remoteBlob.setContent(localBlob.getContent());
                             remoteBlob.setContentString(localBlob.getContentString());
@@ -532,8 +539,9 @@ public class Repository {
                         }
                     }
 
-                    Commit remoteCommit = new Commit(localCommit.getMessage(), localCommit.getParents(), newTracked,
-                            localCommit.getTimestamp(), localCommit.getDepth(), branchName);
+                    Commit remoteCommit = new Commit(localCommit.getMessage(),
+                            localCommit.getParents(), newTracked, localCommit.getTimestamp(),
+                            localCommit.getDepth(), branchName);
                     remoteCommit.setId(localCommit.getId());
                     remoteCommit.save(remotePath);
                 }
@@ -552,7 +560,7 @@ public class Repository {
 
     public void pull(String remoteName, String branchName) {
         fetch(remoteName, branchName);
-        merge(remoteName + "/" + branchName);
+        merge(remoteName + '-' + branchName);
     }
 
 
