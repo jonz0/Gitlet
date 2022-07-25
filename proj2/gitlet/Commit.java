@@ -43,40 +43,6 @@ public class Commit implements Serializable {
 
         // This object's id is the SHA-1 hash of the message, parents, and tracked.
         this.id = Utils.sha1(this.message, this.parents.toString(), this.tracked.toString());
-
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public int getDepth() {
-        return depth;
-    }
-
-    public Map<String, String> getTracked() {
-        return tracked;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String newId) {
-        id = newId;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    /** Returns a List of ids of this object's parents. */
-    public List<String> getParents() {
-        return parents;
     }
 
     /** Returns a List of file names tracked by this Commit. */
@@ -85,7 +51,6 @@ public class Commit implements Serializable {
         for (String filePath : tracked.keySet()) {
             trackedNames.add(new File(filePath).getName());
         }
-
         return trackedNames;
     }
 
@@ -171,7 +136,22 @@ public class Commit implements Serializable {
         return commitPath.getParentFile().getParentFile().getParentFile().getParentFile();
     }
 
-    public File getPath() {
-        return commitPath;
-    }
+    /** Returns a List of ids of this object's parents. */
+    public List<String> getParents() { return parents; }
+
+    public File getPath() { return commitPath; }
+
+    public String getMessage() { return message; }
+
+    public int getDepth() { return depth; }
+
+    public Map<String, String> getTracked() { return tracked; }
+
+    public String getBranch() { return branch; }
+
+    public String getId() { return id; }
+
+    public void setId(String newId) { id = newId; }
+
+    public String getTimestamp() { return timestamp; }
 }
