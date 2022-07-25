@@ -583,33 +583,6 @@ public class Repository {
         add(new File(filePath).getName());
     }
 
-
-    /* ERROR HANDLING */
-
-    public void mergeErrors(String branch) {
-        if (!staging.isClear()) {
-            Utils.exit("You have uncommitted changes.");
-        } else if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) {
-            Utils.exit("A branch with that name does not exist.");
-        } else if (branch.equals(getActiveBranchName(GITLET_DIR))) {
-            Utils.exit("Cannot merge a branch with itself.");
-        }
-    }
-
-    public void fetchErrors(String remoteName, String branchName) {
-        File remoteFile = join(REMOTES_DIR, remoteName);
-        File remotePath = new File(readContentsAsString(remoteFile));
-        if (!remoteFile.exists() || !remotePath.exists()) {
-            Utils.exit("Remote directory not found.");
-        }
-
-        File remoteBranches = Utils.join(remotePath, "branches");
-        if (!Objects.requireNonNull(plainFilenamesIn(remoteBranches),
-                "That remote does not have that branch.").contains(branchName)) {
-            Utils.exit("That remote does not have that branch.");
-        }
-    }
-
     public void copyCommits(Set<Commit> remoteCommits, String branchName) {
         for (Commit c : remoteCommits) {
             Map<String, String> newTracked = new HashMap<>();
@@ -639,6 +612,32 @@ public class Repository {
                 localBlob.setId(b.getId());
                 localBlob.save(GITLET_DIR);
             }
+        }
+    }
+
+    /* ERROR HANDLING */
+
+    public void mergeErrors(String branch) {
+        if (!staging.isClear()) {
+            Utils.exit("You have uncommitted changes.");
+        } else if (!Utils.join(Repository.BRANCHES_DIR, branch).exists()) {
+            Utils.exit("A branch with that name does not exist.");
+        } else if (branch.equals(getActiveBranchName(GITLET_DIR))) {
+            Utils.exit("Cannot merge a branch with itself.");
+        }
+    }
+
+    public void fetchErrors(String remoteName, String branchName) {
+        File remoteFile = join(REMOTES_DIR, remoteName);
+        File remotePath = new File(readContentsAsString(remoteFile));
+        if (!remoteFile.exists() || !remotePath.exists()) {
+            Utils.exit("Remote directory not found.");
+        }
+
+        File remoteBranches = Utils.join(remotePath, "branches");
+        if (!Objects.requireNonNull(plainFilenamesIn(remoteBranches),
+                "That remote does not have that branch.").contains(branchName)) {
+            Utils.exit("That remote does not have that branch.");
         }
     }
 }
