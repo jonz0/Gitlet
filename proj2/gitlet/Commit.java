@@ -24,7 +24,7 @@ public class Commit implements Serializable {
      * corresponds to the least common ancestor of two nodes. */
     private final int depth;
     private final String branch;
-    private File repoDir = null;
+    private File commitPath = null;
 
     /** Creates the commit object.
      * If parents and tracked are null, creates the initial commit. */
@@ -170,10 +170,14 @@ public class Commit implements Serializable {
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);
-        repoDir = commitFile.getParentFile().getParentFile().getParentFile().getParentFile();
+        commitPath = commitFile;
     }
 
     public File getRepoDir() {
-        return repoDir;
+        return commitPath.getParentFile().getParentFile().getParentFile().getParentFile();
+    }
+
+    public File getPath() {
+        return commitPath;
     }
 }

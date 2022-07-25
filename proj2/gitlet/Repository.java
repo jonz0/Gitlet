@@ -286,6 +286,8 @@ public class Repository {
         checkoutProcesses(resetCommit, staging);
         Branch b = new Branch(resetCommit.getBranch(), resetCommit);
         b.save(null);
+        setActiveBranchName(resetCommit.getBranch());
+        setHead(resetCommit.getId());
     }
 
     /** Merges the given branch with the current one.
@@ -322,6 +324,7 @@ public class Repository {
         Map<String, String> splitBlobs = splitCommit.getTracked();
         Map<String, String> headBlobs = head.getTracked();
         Map<String, String> otherBlobs = otherHead.getTracked();
+
         for (String filePath : allBlobIds.keySet()) {
             Blob headBlob = null;
             if (headBlobs.get(filePath) != null) {
@@ -411,7 +414,6 @@ public class Repository {
         String name = remoteName + "-" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
 
-        // copy over commits and blobs
         Set<Commit> remoteCommits = Utils.getAllCommits(remoteBranch.getHead(), remotePath);
 
         for (Commit c : remoteCommits) {
@@ -420,8 +422,9 @@ public class Repository {
                 String newFilePath = filePath.replace(new File(filePath).getParent(), GITLET_DIR.getParent());
                 newTracked.put(newFilePath, c.getTracked().get(filePath));
             }
-            Commit localCommit = new Commit(c.getMessage(), c.getParents(), newTracked,
-                    c.getTimestamp(), c.getDepth(), c.getBranch());
+            List<String> newParents = c.getParents();
+            Commit localCommit = new Commit(c.getMessage(), newParents, newTracked,
+                    c.getTimestamp(), c.getDepth(), name);
             localCommit.setId(c.getId());
             localCommit.save(null);
         }
@@ -443,6 +446,11 @@ public class Repository {
         Commit localBranchHead = Commit.getCommit(remoteId, null);
         Branch br = new Branch(name, localBranchHead);
         br.save(null);
+
+        // IF the current branch is the branch that was fetched update HEAD.
+        if (getActiveBranch().equals(name)) {
+            writeContents(HEAD, remoteBranch.getHead().getId());
+        }
     }
 
     public void push(String remoteName, String branchName) {
@@ -495,7 +503,7 @@ public class Repository {
                     }
 
                     Commit remoteCommit = new Commit(localCommit.getMessage(), localCommit.getParents(), newTracked,
-                            localCommit.getTimestamp(), localCommit.getDepth(), localCommit.getBranch());
+                            localCommit.getTimestamp(), localCommit.getDepth(), branchName);
                     remoteCommit.setId(localCommit.getId());
                     remoteCommit.save(remotePath);
                 }
@@ -506,14 +514,15 @@ public class Repository {
         Branch updatedBranch = new Branch(branchName, newRemoteHead);
         updatedBranch.save(remotePath);
 
-        File remoteHead = join(remotePath, "head");
-        writeContents(remoteHead, getHeadId());
-
+        if (branchName.equals(newRemoteHead.getBranch())) {
+            File remoteHead = join(remotePath, "head");
+            writeContents(remoteHead, getHeadId());
+        }
     }
 
     public void pull(String remoteName, String branchName) {
         fetch(remoteName, branchName);
-        merge("remoteName" + "-" + "branchName");
+        merge(remoteName + "-" + branchName);
     }
 
 
