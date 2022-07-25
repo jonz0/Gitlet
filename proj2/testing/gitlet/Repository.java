@@ -410,7 +410,7 @@ public class Repository {
         if (remoteFile.exists()) {
             Utils.exit("A remote with that name already exists.");
         }
-        filePath.replace('-', File.separatorChar);
+        filePath.replace('/', File.separatorChar);
         writeContents(remoteFile, filePath);
     }
 
@@ -440,7 +440,7 @@ public class Repository {
         }
 
         // Copy over the commits and blobs:
-        String name = remoteName + '-' + branchName;
+        String name = remoteName + "/" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
 
 
