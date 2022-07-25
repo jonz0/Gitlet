@@ -51,38 +51,6 @@ public class Utils {
         }
     }
 
-    /** Returns the SHA-1 hash of the concatenation of the strings in
-     *  VALS. */
-    static String sha1(List<Object> vals) {
-        return sha1(vals.toArray(new Object[vals.size()]));
-    }
-
-
-    /* FILE DELETION */
-
-    /** Deletes FILE if it exists and is not a directory.  Returns true
-     *  if FILE was deleted, and false otherwise.  Refuses to delete FILE
-     *  and throws IllegalArgumentException unless the directory designated by
-     *  FILE also contains a directory named .gitlet. */
-    static boolean restrictedDelete(File file) {
-        if (!(new File(file.getParentFile(), ".gitlet")).isDirectory()) {
-            throw new IllegalArgumentException("not .gitlet working directory");
-        }
-        if (!file.isDirectory()) {
-            return file.delete();
-        } else {
-            return false;
-        }
-    }
-
-    /** Deletes the file named FILE if it exists and is not a directory.
-     *  Returns true if FILE was deleted, and false otherwise.  Refuses
-     *  to delete FILE and throws IllegalArgumentException unless the
-     *  directory designated by FILE also contains a directory named .gitlet. */
-    static boolean restrictedDelete(String file) {
-        return restrictedDelete(new File(file));
-    }
-
 
     /* READING AND WRITING FILE CONTENTS */
 
@@ -150,7 +118,7 @@ public class Utils {
 
     /** Write OBJ to FILE. */
     static void writeObject(File file, Serializable obj) {
-        writeContents(file, serialize(obj));
+        writeContents(file, (Object) serialize(obj));
     }
 
 
@@ -237,13 +205,6 @@ public class Utils {
         return new GitletException(String.format(msg, args));
     }
 
-    /** Print a message composed from MSG and ARGS as for the String.format
-     *  method, followed by a newline. */
-    static void message(String msg, Object... args) {
-        System.out.printf(msg, args);
-        System.out.println();
-    }
-
     /** Used for error handling. Prints the given message, then exits the program. */
     static void exit(String message) {
         System.out.println(message);
@@ -286,43 +247,43 @@ public class Utils {
     }
 
     /** Builds the global log of all commits in chronological order. */
-    static void buildGlobalLog(Commit c) {
-        if (!Repository.GLOBAL_LOG.exists()) {
-            writeContents(Repository.GLOBAL_LOG, "");
+    static void buildGlobalLog(Commit c, File gitletDir) {
+        File globalLog = join(gitletDir, "global log");
+        if (!globalLog.exists()) {
+            writeContents(globalLog, "");
         }
-        String log = readContentsAsString(Repository.GLOBAL_LOG)
+        String log = readContentsAsString(globalLog)
                 + c.getLog().substring(1) + "\n";
-        writeContents(Repository.GLOBAL_LOG, log);
+        writeContents(globalLog, log);
     }
 
     /** Points the head object to a new Commit id. */
-    static void setHead(String id) {
-        Utils.writeContents(Repository.HEAD, id);
+    static void setHead(String id, File gitletDir) {
+        File headFile = join(gitletDir, "HEAD");
+        Utils.writeContents(headFile, id);
     }
 
     /** Returns the Sha-1 hash of the Head object. */
-    static String getHeadId() {
-        return Utils.readContentsAsString(Repository.HEAD);
+    static String getHeadId(File gitletDir) {
+        File head = join(gitletDir, "HEAD");
+        return Utils.readContentsAsString(head);
     }
 
-    static Commit getHeadCommit() {
-        return Commit.getCommit(getHeadId(), Repository.GITLET_DIR);
+    static Commit getHeadCommit(File gitletDir) {
+        return Commit.getCommit(getHeadId(gitletDir), gitletDir);
     }
 
     static void setActiveBranchName(String name) {
         Utils.writeContents(Repository.ACTIVE_BRANCH, name);
     }
 
-    static String getActiveBranchName() {
-        return readContentsAsString(Repository.ACTIVE_BRANCH);
-    }
-
-    static Branch getActiveBranch() {
-        return Utils.getBranch(getActiveBranchName(), Repository.GITLET_DIR);
+    static String getActiveBranchName(File gitletDir) {
+        File branches = join(gitletDir, "branches");
+        return readContentsAsString(join(branches, "active branch"));
     }
 
     static void updateActiveBranchHead(Commit c) {
-        Branch b = new Branch(getActiveBranchName(), c);
+        Branch b = new Branch(getActiveBranchName(Repository.GITLET_DIR), c);
         b.save(Repository.GITLET_DIR);
     }
 
@@ -330,7 +291,7 @@ public class Utils {
      * will be modified or removed by the checkout, displays an error message. */
     static void checkForUntracked(Commit c) {
         for (String filePath : c.getTracked().keySet()) {
-            if (!getHeadCommit().getTracked().containsKey(filePath)) {
+            if (!getHeadCommit(Repository.GITLET_DIR).getTracked().containsKey(filePath)) {
                 if (new File(filePath).exists()) {
                     exit("There is an untracked file in the way; delete it, "
                             + "or add and commit it first.");
@@ -459,7 +420,7 @@ public class Utils {
         s.clear();
         s.setTracked(c.getTracked());
         s.save();
-        setHead(c.getId());
+        setHead(c.getId(), Repository.GITLET_DIR);
     }
 
     /** Returns a set of all parent commits starting from the commit c.
@@ -517,34 +478,10 @@ public class Utils {
         return Utils.readObject(file, Branch.class);
     }
 
-    public static Set<String> getAllCommitIds(Commit c, File gitletDir) {
-        Set<String> s = new HashSet<>();
-        Commit currentCommit = c;
-
-        while (true) {
-            // if a Commit node was visited, no need to iterate through its ancestors.
-            assert currentCommit != null;
-            if (s.contains(currentCommit.getId())) {
-                break;
-            }
-            // Add the current node and its depth.
-            s.add(currentCommit.getId());
-
-            // If the initial commit is visited, the iteration is finished.
-            List<String> commitParents = currentCommit.getParents();
-            if (commitParents.isEmpty()) {
-                break;
-            }
-            // if the Commit node has 2 parents, add the ancestors of its second parent.
-            if (commitParents.size() > 1) {
-                String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, gitletDir);
-                s.addAll(getAllCommitIds(secondParent, gitletDir));
-            }
-            // Change the current node to its first parent.
-            String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, gitletDir);
-        }
-        return s;
+    static Commit getInitialCommit(File gitletDir) {
+        File staging = join(gitletDir, "staging");
+        Staging s = readObject(staging, Staging.class);
+        return Commit.getCommit(Objects.requireNonNull(s,"The repository"
+                + "has not yet been initialized.").getInitialId(), gitletDir);
     }
 }

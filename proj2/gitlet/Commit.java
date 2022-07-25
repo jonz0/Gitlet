@@ -149,7 +149,7 @@ public class Commit implements Serializable {
             if (!getTracked().containsKey(filePath)) {
                 String fileName = new File(filePath).getName();
                 File f = join(Repository.CWD, fileName);
-                restrictedDelete(f);
+                f.delete();
             }
         }
     }

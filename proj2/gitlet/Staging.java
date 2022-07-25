@@ -12,6 +12,7 @@ public class Staging implements Serializable {
     private Map<String, String> tracked;
     private final Map<String, String> toAdd;
     private final Set<String> toRemove;
+    private String initialId;
 
     /** Constructs the staging area. */
     public Staging() {
@@ -63,7 +64,7 @@ public class Staging implements Serializable {
             toAdd.remove(filePath);
             this.save();
             toRemove.add(filePath);
-            Utils.restrictedDelete(file);
+            file.delete();
         }
         toAdd.remove(filePath);
         this.save();
@@ -123,4 +124,8 @@ public class Staging implements Serializable {
     public Map<String, String> getToAdd() {
         return toAdd;
     }
+
+    public String getInitialId() { return initialId; }
+
+    public void setInitialId(String id) { initialId = id; }
 }

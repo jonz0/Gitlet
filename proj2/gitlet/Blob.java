@@ -88,9 +88,7 @@ public class Blob implements Serializable {
         return content;
     }
 
-    public void setContent(byte[] newContent) {
-        content = newContent;
-    }
+    public void setContent(byte[] newContent) { content = newContent; }
 
     public String getContentString() {
         return contentString;

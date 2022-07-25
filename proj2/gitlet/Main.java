@@ -16,9 +16,8 @@ public class Main {
             System.out.println("Please enter a command.");
         } else {
             switch (args[0]) {
-                case "init" -> {
+                case "init" ->
                     r.init();
-                }
                 case "add" -> {
                     r.exists();
                     r.add(args[1]);
