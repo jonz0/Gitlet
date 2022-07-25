@@ -76,9 +76,7 @@ public class Commit implements Serializable {
                 }
             }
         }
-        if (!commitFile.exists()) {
-            return null;
-        }
+        if (!commitFile.exists()) { return null; }
         return Utils.readObject(commitFile, Commit.class);
     }
 

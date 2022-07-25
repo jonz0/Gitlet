@@ -113,7 +113,6 @@ public class Repository {
     /** Unstages the file if it is currently staged for addition. If the file is
      * tracked in the current commit, stage it for removal and removes it from tracking. */
     public void rm(String name) {
-
         File file = Utils.getFile(name);
         String filePath = file.getPath();
 
@@ -177,7 +176,6 @@ public class Repository {
         overFiveCharacters(commitId);
         File checkout = join(CWD, name);
         Commit c = Commit.getCommit(commitId, GITLET_DIR);
-
         if (c == null) {
             Utils.exit("No commit with that id exists.");
         }
@@ -187,9 +185,8 @@ public class Repository {
         }
 
         Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()), GITLET_DIR);
-
-        Utils.checkForUntracked(Objects.requireNonNull(Commit.getCommit(commitId, GITLET_DIR)));
         assert b != null;
+        Utils.checkForUntracked(Objects.requireNonNull(Commit.getCommit(commitId, GITLET_DIR)));
         writeContents(checkout, (Object) b.getContent());
     }
 
