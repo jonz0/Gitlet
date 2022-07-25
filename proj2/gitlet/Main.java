@@ -1,23 +1,27 @@
 package gitlet;
 
-/** Driver class for Gitlet, a subset of the Git version-control system. */
+/**
+ * Driver class for Gitlet, a subset of the Git version-control system.
+ */
 public class Main {
 
-    /** Stores controls for gitlet and accesses methods via Repository object.
-     *
+    /**
+     * Stores controls for gitlet and accesses methods via Repository object.
+     * <p>
      * Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ...
-     *  @author Jonathan Lu
+     * <COMMAND> <OPERAND1> <OPERAND2> ...
+     *
+     * @author Jonathan Lu
      */
+
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+
         Repository r = new Repository();
         if (args.length == 0) {
             System.out.println("Please enter a command.");
         } else {
             switch (args[0]) {
-                case "init" ->
-                    r.init();
+                case "init" -> r.init();
                 case "add" -> {
                     r.exists();
                     r.add(args[1]);

@@ -2,32 +2,52 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-/** Represents a gitlet staging object.
- *  Commits are hashed using message, parents, tracked, and timestamp.
- *  @author Jonathan Lu
+/**
+ * Represents a gitlet staging object.
+ * Commits are hashed using message, parents, tracked, and timestamp.
+ *
+ * @author Jonathan Lu
  */
+
 public class Staging implements Serializable {
-    private Map<String, String> tracked;
+
     private final Map<String, String> toAdd;
     private final Set<String> toRemove;
+    private Map<String, String> tracked;
     private String initialId;
 
-    /** Constructs the staging area. */
+    /**
+     * Constructs the staging area.
+     */
     public Staging() {
         this.tracked = new HashMap<>();
         this.toAdd = new HashMap<>();
         this.toRemove = new HashSet<>();
     }
 
-    /** Clears the staging area. */
+    /**
+     * Returns the staging object stored in the serialized staging file.
+     */
+    public static Staging readStaging() {
+        return Utils.readObject(Repository.STAGING_FILE, Staging.class);
+    }
+
+    /**
+     * Clears the staging area.
+     */
     public void clear() {
         toAdd.clear();
         toRemove.clear();
     }
 
-    /** Attaches a file to the staging area and returns true if the staging area changes. */
+    /**
+     * Attaches a file to the staging area and returns true if the staging area changes.
+     */
     public void add(File file) {
         Blob blob = new Blob(file);
         String blobId = blob.getId();
@@ -55,7 +75,9 @@ public class Staging implements Serializable {
         this.save();
     }
 
-    /** Removes file from the staging area and returns true if the staging area changes. */
+    /**
+     * Removes file from the staging area and returns true if the staging area changes.
+     */
     public void remove(File file) {
         String filePath = file.getPath();
 
@@ -70,7 +92,9 @@ public class Staging implements Serializable {
         this.save();
     }
 
-    /** Clears the add and removal stages. Updates and returns the tracked stage. */
+    /**
+     * Clears the add and removal stages. Updates and returns the tracked stage.
+     */
     public Map<String, String> commit() {
         for (String filePath : toAdd.keySet()) {
             Blob b = new Blob(Utils.getFile(filePath));
@@ -84,7 +108,9 @@ public class Staging implements Serializable {
         return tracked;
     }
 
-    /** Returns the names of all files that are staged for addition and removal. */
+    /**
+     * Returns the names of all files that are staged for addition and removal.
+     */
     public Set<String> getStaged() {
         Set<String> staged = new HashSet<>();
         for (String filePath : toAdd.keySet()) {
@@ -96,17 +122,15 @@ public class Staging implements Serializable {
         return staged;
     }
 
-    /** Saves the current staging object to the Staging file. */
+    /**
+     * Saves the current staging object to the Staging file.
+     */
     public void save() {
         Utils.writeObject(Repository.STAGING_FILE, this);
     }
 
     public boolean isClear() {
         return toAdd.isEmpty() && toRemove.isEmpty();
-    }
-
-    public static Staging readStaging() {
-        return Utils.readObject(Repository.STAGING_FILE, Staging.class);
     }
 
     public Map<String, String> getTracked() {
@@ -125,7 +149,11 @@ public class Staging implements Serializable {
         return toAdd;
     }
 
-    public String getInitialId() { return initialId; }
+    public String getInitialId() {
+        return initialId;
+    }
 
-    public void setInitialId(String id) { initialId = id; }
+    public void setInitialId(String id) {
+        initialId = id;
+    }
 }

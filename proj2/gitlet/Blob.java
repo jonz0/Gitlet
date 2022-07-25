@@ -2,21 +2,21 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
 
-import static gitlet.Utils.join;
-import static gitlet.Utils.plainFilenamesIn;
-
-/** Represents a gitlet blob object.
- *  Used for serializing and storing files in the Gitlet repository.
- *  @author Jonathan Lu
+/**
+ * Represents a gitlet blob object.
+ * Used for serializing and storing files in the Gitlet repository.
+ *
+ * @author Jonathan Lu
  */
+
 public class Blob implements Serializable {
 
+    private final File source;
     private byte[] content;
     private String contentString;
     private String id;
-    private final File source;
 
     public Blob(File source) {
         this.source = source;
@@ -32,10 +32,11 @@ public class Blob implements Serializable {
         }
     }
 
-    /** Returns the blob object stored in the file id. Returns null if the blob id
-     * does not reference an existing Blob.*/
+    /**
+     * Returns the blob object stored in the file id. Returns null if the blob id
+     * does not reference an existing Blob.
+     */
     public static Blob getBlob(String id, File gitletDir) {
-        File blobFile;
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
         File objects = Utils.join(gitletDir, "objects");
@@ -44,13 +45,14 @@ public class Blob implements Serializable {
         if (!folder.exists()) {
             return null;
         }
-        blobFile = join(folder, fileName);
+
+        File blobFile = Utils.join(folder, fileName);
         if (fileName.length() < Utils.UID_LENGTH - 2) {
-            List<String> containedBlobs = plainFilenamesIn(folder);
+            List<String> containedBlobs = Utils.plainFilenamesIn(folder);
             assert containedBlobs != null;
             for (String blobId : containedBlobs) {
                 if (blobId.startsWith(fileName)) {
-                    blobFile = join(folder, blobId);
+                    blobFile = Utils.join(folder, blobId);
                 }
             }
         }
@@ -60,15 +62,17 @@ public class Blob implements Serializable {
         return Utils.readObject(blobFile, Blob.class);
     }
 
-    /** Saves the blob object to the OBJECTS file in a directory named
-     * the first two characters of the blob id. */
+    /**
+     * Saves the blob object to the OBJECTS file in a directory named
+     * the first two characters of the blob id.
+     */
     public void save(File gitletDir) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
         File objects = Utils.join(gitletDir, "objects");
         File folder = Utils.join(objects, folderName);
         folder.mkdir();
-        File blobFile = join(folder, fileName);
+        File blobFile = Utils.join(folder, fileName);
         Utils.writeObject(blobFile, this);
     }
 
@@ -88,7 +92,9 @@ public class Blob implements Serializable {
         return content;
     }
 
-    public void setContent(byte[] newContent) { content = newContent; }
+    public void setContent(byte[] newContent) {
+        content = newContent;
+    }
 
     public String getContentString() {
         return contentString;
