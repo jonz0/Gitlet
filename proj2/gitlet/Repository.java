@@ -46,10 +46,10 @@ public class Repository {
             Commit initial = new Commit("initial commit", null, null, timestamp,
                     0, "master");
             setHead(initial.getId());
-            initial.save(null);
+            initial.save(GITLET_DIR);
 
             Branch master = new Branch("master", initial);
-            master.save(null);
+            master.save(GITLET_DIR);
             Utils.setActiveBranchName("master");
             Utils.buildGlobalLog(initial);
         }
@@ -96,7 +96,7 @@ public class Repository {
         String timestamp = dateFormat.format(new Date());
         Commit c = new Commit(message, parents, tracked, timestamp, parentDepth + 1,
                 getActiveBranchName());
-        c.save(null);
+        c.save(GITLET_DIR);
         setHead(c.getId());
         updateActiveBranchHead(c);
         Utils.buildGlobalLog(c);
@@ -134,12 +134,12 @@ public class Repository {
      * A branch is nothing more than a name for a reference (a SHA-1 identifier) to a
      * commit node. This command does NOT immediately switch to the newly created branch */
     public void branch(String name) {
-        Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD), null));
+        Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD), GITLET_DIR));
 
         if (join(Repository.BRANCHES_DIR, name).exists()) {
             Utils.exit("A branch with that name already exists.");
         }
-        b.save(null);
+        b.save(GITLET_DIR);
     }
 
     /** Takes all files in the commit at the head of the given branch, and puts them
@@ -168,7 +168,7 @@ public class Repository {
     public static void checkoutCommit(String commitId, String name) {
         overFiveCharacters(commitId);
         File checkout = join(CWD, name);
-        Commit c = Commit.getCommit(commitId, null);
+        Commit c = Commit.getCommit(commitId, GITLET_DIR);
 
         if (c == null) {
             Utils.exit("No commit with that id exists.");
@@ -178,9 +178,9 @@ public class Repository {
             Utils.exit("File does not exist in that commit.");
         }
 
-        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()), null);
+        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()), GITLET_DIR);
 
-        Utils.checkForUntracked(Objects.requireNonNull(Commit.getCommit(commitId, null)));
+        Utils.checkForUntracked(Objects.requireNonNull(Commit.getCommit(commitId, GITLET_DIR)));
         assert b != null;
         writeContents(checkout, (Object) b.getContent());
     }
@@ -191,12 +191,12 @@ public class Repository {
     public void checkoutFile(String name) {
         File checkout = join(CWD, name);
 
-        Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD), null);
+        Commit c = Commit.getCommit(readContentsAsString(Repository.HEAD), GITLET_DIR);
         assert c != null;
         if (!c.getTrackedNames().contains(name)) {
             Utils.exit("File does not exist in that commit.");
         }
-        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()), null);
+        Blob b = Blob.getBlob(c.getTracked().get(getFile(name).getPath()), GITLET_DIR);
         assert b != null;
         writeContents(checkout, (Object) b.getContent());
     }
@@ -228,7 +228,7 @@ public class Repository {
             File directory = join(OBJECTS_DIR, directoryName);
             for (String commitName : Objects.requireNonNull(plainFilenamesIn(directory),
                     "No objects exist in this repository.")) {
-                Commit c = Commit.getCommit(directory.getName() + commitName, null);
+                Commit c = Commit.getCommit(directory.getName() + commitName, GITLET_DIR);
                 if (c != null && c.getMessage().equals(message)) {
                     log.append("\n").append(c.getId());
                 }
@@ -280,7 +280,7 @@ public class Repository {
             }
             Blob tempBlob = new Blob(f);
             if (!tempBlob.getId().equals(Blob.getBlob(staging.getTracked().get(filePath),
-                    null).getId())) {
+                    GITLET_DIR).getId())) {
                 status.append(fileName).append(" ").append("(modified)\n");
             }
         }
@@ -308,7 +308,7 @@ public class Repository {
      * and moves the current branch head to the commit node. */
     public void reset(String commitId) {
         overFiveCharacters(commitId);
-        Commit resetCommit = Commit.getCommit(commitId, null);
+        Commit resetCommit = Commit.getCommit(commitId, GITLET_DIR);
         if (resetCommit == null) {
             Utils.exit("No commit with that id exists.");
         }
@@ -316,8 +316,7 @@ public class Repository {
         Utils.checkForUntracked(resetCommit);
         checkoutProcesses(resetCommit, staging);
         Branch b = new Branch(resetCommit.getBranch(), resetCommit);
-        b.save(null);
-        // setActiveBranchName(resetCommit.getBranch());
+        b.save(GITLET_DIR);
         setHead(resetCommit.getId());
     }
 
@@ -332,7 +331,7 @@ public class Repository {
         } else if (branch.equals(getActiveBranchName())) {
             Utils.exit("Cannot merge a branch with itself.");
         }
-        Branch otherBranch = Utils.getBranch(branch, null);
+        Branch otherBranch = Utils.getBranch(branch, GITLET_DIR);
         Commit head = getHeadCommit();
         Commit otherHead = otherBranch.getHead();
         Utils.checkForUntracked(otherHead);
@@ -341,7 +340,7 @@ public class Repository {
         Map<String, Integer> commonAncestors =
                 getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
         String splitId = latestCommonAncestor(commonAncestors);
-        Commit splitCommit = Commit.getCommit(splitId, null);
+        Commit splitCommit = Commit.getCommit(splitId, GITLET_DIR);
 
         if (splitId.equals(otherHead.getId())) {
             Utils.exit("Given branch is an ancestor of the current branch.");
@@ -359,11 +358,11 @@ public class Repository {
         for (String filePath : allBlobIds.keySet()) {
             Blob headBlob = null;
             if (headBlobs.get(filePath) != null) {
-                headBlob = Blob.getBlob(headBlobs.get(filePath), null);
+                headBlob = Blob.getBlob(headBlobs.get(filePath), GITLET_DIR);
             }
             Blob otherBlob = null;
             if (otherBlobs.get(filePath) != null) {
-                otherBlob = Blob.getBlob(otherBlobs.get(filePath), null);
+                otherBlob = Blob.getBlob(otherBlobs.get(filePath), GITLET_DIR);
             }
             boolean inSplit = splitBlobs.containsKey(filePath);
             boolean inHead = headBlobs.containsKey(filePath);
@@ -460,12 +459,12 @@ public class Repository {
             Commit localCommit = new Commit(c.getMessage(), newParents, newTracked,
                     c.getTimestamp(), c.getDepth(), name);
             localCommit.setId(c.getId());
-            localCommit.save(null);
+            localCommit.save(GITLET_DIR);
         }
 
         Set<Blob> remoteBlobs = Utils.getAllBlobs(remoteCommits, remotePath);
         for (Blob b : remoteBlobs) {
-            if (Blob.getBlob(b.getId(), null) == null){
+            if (Blob.getBlob(b.getId(), GITLET_DIR) == null){
                 String oldSourcePath = b.getSource().getParent();
                 String newPath = b.getSource().getPath().replace(oldSourcePath,
                         GITLET_DIR.getParent());
@@ -473,14 +472,14 @@ public class Repository {
                 localBlob.setContent(b.getContent());
                 localBlob.setContentString(b.getContentString());
                 localBlob.setId(b.getId());
-                localBlob.save(null);
+                localBlob.save(GITLET_DIR);
             }
         }
 
         String remoteId = remoteBranch.getHead().getId();
-        Commit localBranchHead = Commit.getCommit(remoteId, null);
+        Commit localBranchHead = Commit.getCommit(remoteId, GITLET_DIR);
         Branch br = new Branch(name, localBranchHead);
-        br.save(null);
+        br.save(GITLET_DIR);
 
         // IF the current branch is the branch that was fetched update HEAD.
         if (getActiveBranch().equals(name)) {
@@ -489,31 +488,25 @@ public class Repository {
     }
 
     public void push(String remoteName, String branchName) {
-        // Works if the remote branch’s head is in the history of the current local head
-        // Append additional commits of the current branch to the remote branch
-        // Set remote branch head to the current branch head (Fast-forwarding)
         File remoteFile = join(REMOTES_DIR, remoteName);
-        if (!remoteFile.exists()) {
-            Utils.exit("Remote directory not found.");
-        }
         File remotePath = new File(readContentsAsString(remoteFile));
-        if (!remotePath.exists()) {
+        if (!remoteFile.exists() || !remotePath.exists()) {
             Utils.exit("Remote directory not found.");
         }
 
-        Set<String> currentCommitIds = getAllCommitIds(getHeadCommit(), null);
+        Set<String> currentCommitIds = getAllCommitIds(getHeadCommit(), GITLET_DIR);
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
         if (!currentCommitIds.contains(remoteBranch.getHead().getId())) {
             Utils.exit("Please pull down remote changes before pushing.");
         }
 
         Set<String> remoteCommitIds = getAllCommitIds(remoteBranch.getHead(), remotePath);
-        Set<String> localCommitIds = getAllCommitIds(getHeadCommit(), null);
+        Set<String> localCommitIds = getAllCommitIds(getHeadCommit(), GITLET_DIR);
 
         // Copies commits and blobs to the remote repository if it is not already there.
         for (String commitId : localCommitIds) {
             if (!remoteCommitIds.contains(commitId)) {
-                Commit localCommit = Commit.getCommit(commitId, null);
+                Commit localCommit = Commit.getCommit(commitId, GITLET_DIR);
 
                 /* When copying over commits, changes file paths of tracked blobs to point to
                 * the remote directory, and not the local one. */
@@ -525,7 +518,7 @@ public class Repository {
 
                     for (String blobPath : localCommit.getTracked().keySet()) {
                         String blobId = localCommit.getTracked().get(blobPath);
-                        Blob localBlob = Blob.getBlob(blobId, null);
+                        Blob localBlob = Blob.getBlob(blobId, GITLET_DIR);
 
                         if (Blob.getBlob(blobId, remotePath) == null) {
                             String oldPath = localBlob.getSource().getPath();
@@ -535,7 +528,7 @@ public class Repository {
                             remoteBlob.setContent(localBlob.getContent());
                             remoteBlob.setContentString(localBlob.getContentString());
                             remoteBlob.setId(localBlob.getId());
-                            remoteBlob.save(null);
+                            remoteBlob.save(GITLET_DIR);
                         }
                     }
 

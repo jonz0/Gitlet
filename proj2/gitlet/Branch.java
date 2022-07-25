@@ -22,12 +22,9 @@ public class Branch implements Serializable {
     }
 
     /** Saves the Branch object to a file (titled name) in the branches folder. */
-    public void save(File remote) {
-        File branchFile = join(Repository.BRANCHES_DIR, name);
-        if (remote != null) {
-            File branchFolder = join(remote, "branches");
-            branchFile = join(branchFolder, name);
-        }
+    public void save(File gitletDir) {
+        File branchFolder = join(gitletDir, "branches");
+        File branchFile = join(branchFolder, name);
         Utils.writeObject(branchFile, this);
     }
 

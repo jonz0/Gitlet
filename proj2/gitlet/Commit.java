@@ -91,14 +91,11 @@ public class Commit implements Serializable {
 
     /** Returns the commit object stored in the file id.
      * Returns null if the blob id does not reference an existing Commit. */
-    public static Commit getCommit(String id, File remote) {
+    public static Commit getCommit(String id, File gitletDir) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
-        if (remote != null) {
-            File objects = Utils.join(remote, "objects");
-            folder = Utils.join(objects, folderName);
-        }
+        File objects = Utils.join(gitletDir, "objects");
+        File folder = Utils.join(objects, folderName);
 
         if (!folder.exists()) {
             return null;
@@ -138,7 +135,7 @@ public class Commit implements Serializable {
     /** Restores the files tracked by this Commit. Used for checkout. */
     public void restoreTrackedFiles() {
         for (String blobId : tracked.values()) {
-            Blob b = Blob.getBlob(blobId, null);
+            Blob b = Blob.getBlob(blobId, Repository.GITLET_DIR);
             assert b != null;
             Utils.writeContents(b.getSource(), (Object) b.getContent());
         }
@@ -146,7 +143,7 @@ public class Commit implements Serializable {
 
     /** Deletes any files not tracked by this Commit. Used for checkout. */
     public void deleteUntrackedFiles() {
-        Commit head = getCommit(readContentsAsString(Repository.HEAD), null);
+        Commit head = getCommit(readContentsAsString(Repository.HEAD), Repository.GITLET_DIR);
         assert head != null;
         for (String filePath : head.getTracked().keySet()) {
             if (!getTracked().containsKey(filePath)) {
@@ -159,14 +156,11 @@ public class Commit implements Serializable {
 
     /** Saves the commit object to the OBJECTS file in a directory named
      * the first two characters of the commit id. */
-    public void save(File location) {
+    public void save(File gitletDir) {
         String folderName = id.substring(0, 2);
         String fileName = id.substring(2);
-        File folder = Utils.join(Repository.OBJECTS_DIR, folderName);
-        if (location != null) {
-            File objects = Utils.join(location, "objects");
-            folder = Utils.join(objects, folderName);
-        }
+        File objects = Utils.join(gitletDir, "objects");
+        File folder = Utils.join(objects, folderName);
         folder.mkdir();
         File commitFile = join(folder, fileName);
         Utils.writeObject(commitFile, this);

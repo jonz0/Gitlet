@@ -268,7 +268,7 @@ public class Utils {
      * adds builds the log of that object, then points to it's parent Commit.
      * Repeats until the parents list is empty, then saves the LOG file. */
     static void buildLog() {
-        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD), null);
+        Commit currentHeadCommit = Commit.getCommit(readContentsAsString(Repository.HEAD), Repository.GITLET_DIR);
         StringBuilder log = new StringBuilder();
 
         while (true) {
@@ -279,7 +279,7 @@ public class Utils {
                 break;
             }
             String newHeadId = currentHeadCommit.getParents().get(0);
-            currentHeadCommit = Commit.getCommit(newHeadId, null);
+            currentHeadCommit = Commit.getCommit(newHeadId, Repository.GITLET_DIR);
         }
         log.delete(0, 1);
         writeContents(Repository.LOG, log.toString());
@@ -306,7 +306,7 @@ public class Utils {
     }
 
     static Commit getHeadCommit() {
-        return Commit.getCommit(getHeadId(), null);
+        return Commit.getCommit(getHeadId(), Repository.GITLET_DIR);
     }
 
     static void setActiveBranchName(String name) {
@@ -318,12 +318,12 @@ public class Utils {
     }
 
     static Branch getActiveBranch() {
-        return Utils.getBranch(getActiveBranchName(), null);
+        return Utils.getBranch(getActiveBranchName(), Repository.GITLET_DIR);
     }
 
     static void updateActiveBranchHead(Commit c) {
         Branch b = new Branch(getActiveBranchName(), c);
-        b.save(null);
+        b.save(Repository.GITLET_DIR);
     }
 
     /** Error handling for when a commit is being checked out. If an untracked file
@@ -363,12 +363,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, null);
+                Commit secondParent = Commit.getCommit(secondParentId, Repository.GITLET_DIR);
                 m.putAll(getAncestorsDepths(secondParent));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, null);
+            currentCommit = Commit.getCommit(firstParentId, Repository.GITLET_DIR);
         }
         return m;
     }
@@ -394,12 +394,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, null);
+                Commit secondParent = Commit.getCommit(secondParentId, Repository.GITLET_DIR);
                 commonAncestors.putAll(getCommonAncestorsDepths(secondParent, iterated));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, null);
+            currentCommit = Commit.getCommit(firstParentId, Repository.GITLET_DIR);
         }
         return commonAncestors;
     }
@@ -465,7 +465,7 @@ public class Utils {
     /** Returns a set of all parent commits starting from the commit c.
      * Used for copying over commits in a remote repository, where Commit c
      * is the head commit of a given branch.*/
-    public static Set<Commit> getAllCommits(Commit c, File remoteDir) {
+    public static Set<Commit> getAllCommits(Commit c, File gitletDir) {
         Set<Commit> s = new HashSet<>();
         Commit currentCommit = c;
 
@@ -486,12 +486,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, remoteDir);
-                s.addAll(getAllCommits(secondParent, remoteDir));
+                Commit secondParent = Commit.getCommit(secondParentId, gitletDir);
+                s.addAll(getAllCommits(secondParent, gitletDir));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, remoteDir);
+            currentCommit = Commit.getCommit(firstParentId, gitletDir);
         }
         return s;
     }
@@ -511,19 +511,13 @@ public class Utils {
     }
 
     /** Returns the Branch object stored in file id. */
-    public static Branch getBranch(String name, File remote) {
-        File branchDir;
-        if (remote == null) {
-            branchDir = Repository.BRANCHES_DIR;
-        } else {
-            branchDir = join(remote, "branches");
-        }
-
+    public static Branch getBranch(String name, File gitletDir) {
+        File branchDir = join(gitletDir, "branches");
         File file = Utils.join(branchDir, name);
         return Utils.readObject(file, Branch.class);
     }
 
-    public static Set<String> getAllCommitIds(Commit c, File remoteDir) {
+    public static Set<String> getAllCommitIds(Commit c, File gitletDir) {
         Set<String> s = new HashSet<>();
         Commit currentCommit = c;
 
@@ -544,12 +538,12 @@ public class Utils {
             // if the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
-                Commit secondParent = Commit.getCommit(secondParentId, remoteDir);
-                s.addAll(getAllCommitIds(secondParent, remoteDir));
+                Commit secondParent = Commit.getCommit(secondParentId, gitletDir);
+                s.addAll(getAllCommitIds(secondParent, gitletDir));
             }
             // Change the current node to its first parent.
             String firstParentId = commitParents.get(0);
-            currentCommit = Commit.getCommit(firstParentId, remoteDir);
+            currentCommit = Commit.getCommit(firstParentId, gitletDir);
         }
         return s;
     }

@@ -34,7 +34,7 @@ public class Staging implements Serializable {
 
         toRemove.remove(filePath);
         if (tracked.containsKey(filePath) && !toAdd.containsKey(filePath)) {
-            Blob trackedBlob = Blob.getBlob(tracked.get(filePath), null);
+            Blob trackedBlob = Blob.getBlob(tracked.get(filePath), Repository.GITLET_DIR);
             assert trackedBlob != null;
             if (blobId.equals(trackedBlob.getId())) {
                 this.save();
@@ -42,7 +42,7 @@ public class Staging implements Serializable {
             }
         }
         if (toAdd.containsKey(filePath)) {
-            Blob addedBlob = Blob.getBlob(toAdd.get(filePath), null);
+            Blob addedBlob = Blob.getBlob(toAdd.get(filePath), Repository.GITLET_DIR);
             assert addedBlob != null;
             if (blobId.equals(addedBlob.getId())) {
                 toAdd.remove(filePath);
@@ -73,7 +73,7 @@ public class Staging implements Serializable {
     public Map<String, String> commit() {
         for (String filePath : toAdd.keySet()) {
             Blob b = new Blob(Utils.getFile(filePath));
-            b.save(null);
+            b.save(Repository.GITLET_DIR);
         }
         for (String filePath : toRemove) {
             tracked.remove(filePath);
