@@ -18,7 +18,7 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, "gitlet-temp");
+    public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File LOG = join(GITLET_DIR, "log");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
@@ -269,7 +269,35 @@ public class Repository {
             status.append(new File(filePath).getName()).append("\n");
         }
         status.append("\n=== Modifications Not Staged For Commit ===\n");
+        List<String> cwdFiles = plainFilenamesIn(CWD);
+        for (String filePath : staging.getTracked().keySet()) {
+            File f = new File(filePath);
+            String fileName = f.getName();
+            if (!cwdFiles.contains(fileName)) {
+                if (!staging.getToRemove().contains(filePath)) {
+                    status.append(fileName).append(" ").append("(deleted)\n");
+                }
+                break;
+            }
+            Blob tempBlob = new Blob(f);
+            if (!tempBlob.getId().equals(Blob.getBlob(staging.getTracked().get(filePath), null).getId())) {
+                status.append(fileName).append(" ").append("(modified)\n");
+            }
+        }
+        // for each tracked file in cwd, create a blob.
+        // if blob id is not the same as blob associated with the file, then file (modified)
+
+        // for each file in tracked, check if plain files contains the tracked file
+        // if not, (deleted)
         status.append("\n=== Untracked Files ===\n");
+        // get plain files in cwd. if file is not in tracked, add here.
+        for (String file : cwdFiles) {
+            String filePath = getFile(file).getPath();
+            if (!staging.getTracked().keySet().contains(filePath)) {
+                status.append(getFile(file).getName()).append("\n");
+            }
+        }
+
         System.out.println(status);
     }
 
@@ -286,7 +314,7 @@ public class Repository {
         checkoutProcesses(resetCommit, staging);
         Branch b = new Branch(resetCommit.getBranch(), resetCommit);
         b.save(null);
-        setActiveBranchName(resetCommit.getBranch());
+        // setActiveBranchName(resetCommit.getBranch());
         setHead(resetCommit.getId());
     }
 
@@ -382,6 +410,7 @@ public class Repository {
         if (remoteFile.exists()) {
             Utils.exit("A remote with that name already exists.");
         }
+        filePath.replace('/', File.separatorChar);
         writeContents(remoteFile, filePath);
     }
 
@@ -411,8 +440,9 @@ public class Repository {
         }
 
         // Copy over the commits and blobs:
-        String name = remoteName + "-" + branchName;
+        String name = remoteName + "/" + branchName;
         Branch remoteBranch = Utils.getBranch(branchName, remotePath);
+
 
         Set<Commit> remoteCommits = Utils.getAllCommits(remoteBranch.getHead(), remotePath);
 
@@ -522,7 +552,7 @@ public class Repository {
 
     public void pull(String remoteName, String branchName) {
         fetch(remoteName, branchName);
-        merge(remoteName + "-" + branchName);
+        merge(remoteName + "/" + branchName);
     }
 
 
