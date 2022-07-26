@@ -533,6 +533,10 @@ public class Repository {
                  * the remote directory, and not the local one. */
                 Map<String, String> newTracked = new HashMap<>();
 
+                // Wipes and rebuilds the remote repository global log.
+                writeContents(join(remotePath, "global log"), "");
+                buildGlobalLog(getInitialCommit(remotePath), remotePath);
+
                 for (String filePath : localCommit.getTracked().keySet()) {
                     /* Create a new file path pointing to the remote repository for pushed commits
                      * by replacing old paths with newCommitPath. */
@@ -580,10 +584,6 @@ public class Repository {
         if (branchName.equals(getActiveBranchName(remotePath))) {
             setHead(getHeadId(GITLET_DIR), remotePath);
         }
-
-        // Wipes and rebuilds the remote repository global log.
-        writeContents(join(remotePath, "global log"), "");
-        buildGlobalLog(getInitialCommit(remotePath), remotePath);
     }
 
     /**
