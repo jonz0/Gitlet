@@ -12,11 +12,13 @@ import static gitlet.Utils.*;
  * Stores all functionality of commands listed in the Main class.
  *
  * @author Jonathan Lu
- * <p>
- * NOTE: The Gitlet spec indicates remote branches saved to the repository should be
- * named [remote name]/[remote branch name]. However, to prevent the forward slash
- * from acting as a path separator, this version of Gitlet saves remote branches
- * as [remote name]-[remote branch name] instead.
+ *         NOTE: The Gitlet spec indicates remote branches saved to the
+ *         repository should be
+ *         named [remote name]/[remote branch name]. However, to prevent the
+ *         forward slash
+ *         from acting as a path separator, this version of Gitlet saves remote
+ *         branches
+ *         as [remote name]-[remote branch name] instead.
  */
 public class Repository {
 
@@ -33,12 +35,13 @@ public class Repository {
     public static final File ACTIVE_BRANCH = join(BRANCHES_DIR, "active branch");
     public static final File STAGING_FILE = join(GITLET_DIR, "staging");
     static Staging staging = STAGING_FILE.exists() ? Staging.readStaging() : new Staging();
-    //Formatter for the timestamp passed to Commit objects.
+    // Formatter for the timestamp passed to Commit objects.
     DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
 
     /**
      * Takes the version of the file as it exists in the commit with the given id,
-     * and puts it in the working directory, overwriting the version of the file that’s
+     * and puts it in the working directory, overwriting the version of the file
+     * that’s
      * already there if there is one. The new version of the file is not staged.
      */
     public static void checkoutCommit(String commitId, String name) {
@@ -107,8 +110,10 @@ public class Repository {
      */
     public void commit(String message, String secondParentId) {
 
-        /* Handles commit failure cases where the second parent id is too short,
-         * there are no changes staged, and when no commit message is given. */
+        /*
+         * Handles commit failure cases where the second parent id is too short,
+         * there are no changes staged, and when no commit message is given.
+         */
         commitErrors(message, secondParentId);
         // Creates new tracked map and parents list to be committed
         Map<String, String> tracked = staging.commit();
@@ -134,7 +139,8 @@ public class Repository {
 
     /**
      * Unstages the file if it is currently staged for addition. If the file is
-     * tracked in the current commit, stage it for removal and removes it from tracking.
+     * tracked in the current commit, stage it for removal and removes it from
+     * tracking.
      */
     public void rm(String name) {
         File file = getFile(name);
@@ -164,9 +170,12 @@ public class Repository {
     }
 
     /**
-     * Creates a new branch with the given name, and points it at the current head commit.
-     * A branch is nothing more than a name for a reference (a SHA-1 identifier) to a
-     * commit node. This command does NOT immediately switch to the newly created branch
+     * Creates a new branch with the given name, and points it at the current head
+     * commit.
+     * A branch is nothing more than a name for a reference (a SHA-1 identifier) to
+     * a
+     * commit node. This command does NOT immediately switch to the newly created
+     * branch
      */
     public void branch(String name) {
         Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD), GITLET_DIR));
@@ -179,7 +188,8 @@ public class Repository {
 
     /**
      * Takes all files in the commit at the head of the given branch, and puts them
-     * in the working directory, overwriting the versions of the files that are already
+     * in the working directory, overwriting the versions of the files that are
+     * already
      * there if they exist. The given branch is set as the active branch.
      */
     public void checkoutBranch(String name) {
@@ -239,7 +249,8 @@ public class Repository {
     }
 
     /**
-     * Prints out the ids of all commits that have the given commit message, one per line.
+     * Prints out the ids of all commits that have the given commit message, one per
+     * line.
      */
     public void find(String message) {
         StringBuilder log = new StringBuilder();
@@ -299,8 +310,10 @@ public class Repository {
             Blob cwdBlob = new Blob(cwdFile);
             Blob trackedBlob = Blob.getBlob(staging.getTracked().get(filePath), GITLET_DIR);
             String fileName = cwdFile.getName();
-            /* If the file is not in CWD but is being tracked (and not currently staged).
-             * then it is appended to the status. */
+            /*
+             * If the file is not in CWD but is being tracked (and not currently staged).
+             * then it is appended to the status.
+             */
             if (!Objects.requireNonNull(cwdFiles, "There are no trackable"
                     + "files stored in the working directory.").contains(fileName)) {
                 if (!staging.getToRemove().contains(filePath)
@@ -309,8 +322,11 @@ public class Repository {
                 }
                 break;
             }
-            /* If the CWD file's blob has a different id than the tracked blob id, then it also
-             * has different contents and is appended to the status.. */
+            /*
+             * If the CWD file's blob has a different id than the tracked blob id, then it
+             * also
+             * has different contents and is appended to the status..
+             */
             assert trackedBlob != null;
             if (!cwdBlob.getId().equals(trackedBlob.getId())) {
                 status.append(fileName).append(" ").append("(modified)\n");
@@ -318,8 +334,10 @@ public class Repository {
         }
 
         status.append("\n=== Untracked Files ===\n");
-        /* Finds files in CWD that are not currently being tracked, and are also not
-         * staged for addition or removal. */
+        /*
+         * Finds files in CWD that are not currently being tracked, and are also not
+         * staged for addition or removal.
+         */
         assert cwdFiles != null;
         for (String file : cwdFiles) {
             String filePath = getFile(file).getPath();
@@ -334,7 +352,8 @@ public class Repository {
     }
 
     /**
-     * Checks out all files tracked by the given commit, removes files not present in the commit,
+     * Checks out all files tracked by the given commit, removes files not present
+     * in the commit,
      * and moves the current branch head to the commit node.
      */
     public void reset(String commitId) {
@@ -356,8 +375,10 @@ public class Repository {
      * Automatically commits the merge after handling cases for staging.
      */
     public void merge(String branch) {
-        /* Handles failure cases for when there are uncommited changes, when the given
-        branch does not exist, and when attempting to merge a branch with itself. */
+        /*
+         * Handles failure cases for when there are uncommited changes, when the given
+         * branch does not exist, and when attempting to merge a branch with itself.
+         */
         mergeErrors(branch);
 
         Branch otherBranch = getBranch(branch, GITLET_DIR);
@@ -366,13 +387,14 @@ public class Repository {
         checkForUntracked(otherHead);
 
         // Find split point:
-        Map<String, Integer> commonAncestors =
-                getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
+        Map<String, Integer> commonAncestors = getCommonAncestorsDepths(otherHead, getAncestorsDepths(head));
         String splitId = latestCommonAncestor(commonAncestors);
         Commit splitCommit = Commit.getCommit(splitId, GITLET_DIR);
 
-        /* Handles cases when the split point is the same commit as the given branch,
-         * and when the split point is in the given branch. */
+        /*
+         * Handles cases when the split point is the same commit as the given branch,
+         * and when the split point is in the given branch.
+         */
         if (splitId.equals(otherHead.getId())) {
             exit("Given branch is an ancestor of the current branch.");
         } else if (splitId.equals(getHeadId(GITLET_DIR))) {
@@ -520,13 +542,17 @@ public class Repository {
                 Commit localCommit = Commit.getCommit(commitId, GITLET_DIR);
                 assert localCommit != null;
 
-                /* When copying over commits, changes file paths of tracked blobs to point to
-                 * the remote directory, and not the local one. */
+                /*
+                 * When copying over commits, changes file paths of tracked blobs to point to
+                 * the remote directory, and not the local one.
+                 */
                 Map<String, String> newTracked = new HashMap<>();
 
                 for (String filePath : localCommit.getTracked().keySet()) {
-                    /* Create a new file path pointing to the remote repository for pushed commits
-                     * by replacing old paths with newCommitPath. */
+                    /*
+                     * Create a new file path pointing to the remote repository for pushed commits
+                     * by replacing old paths with newCommitPath.
+                     */
                     String localGitlet = GITLET_DIR.getParent();
                     String remoteGitlet = remoteBranch.getHead().getRepoDir().getPath();
                     String newCommitPath = filePath.replace(localGitlet, remoteGitlet);
@@ -538,8 +564,10 @@ public class Repository {
                         Blob localBlob = Blob.getBlob(blobId, GITLET_DIR);
                         assert localBlob != null;
 
-                        /* Saves a new blob in the remote repository, where the source points
-                         * to a file in the remote repository instead of the current one. */
+                        /*
+                         * Saves a new blob in the remote repository, where the source points
+                         * to a file in the remote repository instead of the current one.
+                         */
                         if (Blob.getBlob(blobId, remotePath) == null) {
                             String oldSourcePath = localBlob.getSource().getPath();
                             String newSourcePath = oldSourcePath.replace(localGitlet, remoteGitlet);
@@ -567,7 +595,8 @@ public class Repository {
         Branch updatedBranch = new Branch(branchName, getHeadCommit(remotePath));
         updatedBranch.save(remotePath);
 
-        // If the remote active branch is the same as the pushed branch, also updates HEAD.
+        // If the remote active branch is the same as the pushed branch, also updates
+        // HEAD.
         if (branchName.equals(getActiveBranchName(remotePath))) {
             setHead(getHeadId(GITLET_DIR), remotePath);
         }
@@ -586,11 +615,11 @@ public class Repository {
         merge(remoteName + '-' + branchName);
     }
 
-
     /* OTHER HELPER METHODS */
 
     /**
-     * Checks if the initial Gitlet directory does not exist. Prints an error message.
+     * Checks if the initial Gitlet directory does not exist. Prints an error
+     * message.
      */
     public void exists() {
         if (!GITLET_DIR.exists()) {
