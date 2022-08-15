@@ -7,9 +7,9 @@ import java.util.*;
 import static gitlet.Utils.*;
 
 /**
- * Represents a gitlet commit object.
- * Commits are hashed using message, parents, tracked, and timestamp.
- * Used for serializing and storing commits in the Gitlet repository.
+ * Represents a gitlet commit object. Commits are hashed using message, parents,
+ * tracked, and timestamp. Used for serializing and storing commits in the
+ * Gitlet repository.
  *
  * @author Jonathan Lu
  */
@@ -49,8 +49,8 @@ public class Commit implements Serializable {
     }
 
     /**
-     * Returns the commit object stored in the file id.
-     * Returns null if the blob id does not reference an existing Commit.
+     * Returns the commit object stored in the file id. Returns null if the blob id
+     * does not reference an existing Commit.
      */
     public static Commit getCommit(String id, File gitletDir) {
         String folderName = id.substring(0, 2);
