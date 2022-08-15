@@ -7,7 +7,6 @@ public class Main {
 
     /**
      * Stores controls for gitlet and accesses methods via Repository object.
-     * <p>
      * Usage: java gitlet.Main ARGS, where ARGS contains
      * <COMMAND> <OPERAND1> <OPERAND2> ...
      *
@@ -30,7 +29,8 @@ public class Main {
                     r.exists();
                     if (args.length == 1) {
                         System.out.println("Please enter a commit message.");
-                    } else if (args.length == 2) r.commit(args[1], null);
+                    } else if (args.length == 2)
+                        r.commit(args[1], null);
                 }
                 case "rm" -> {
                     r.exists();
@@ -48,7 +48,8 @@ public class Main {
                     r.exists();
                     if (args.length == 1) {
                         System.out.println("Enter a message to search for.");
-                    } else r.find(args[1]);
+                    } else
+                        r.find(args[1]);
                 }
                 case "status" -> {
                     r.exists();
@@ -60,11 +61,13 @@ public class Main {
                         r.checkoutBranch(args[1]);
                     }
                     if (args.length == 3) {
-                        if (!args[1].equals("--")) System.out.println("Incorrect operands.");
+                        if (!args[1].equals("--"))
+                            System.out.println("Incorrect operands.");
                         r.checkoutFile(args[2]);
                     }
                     if (args.length == 4) {
-                        if (!args[2].equals("--")) System.out.println("Incorrect operands.");
+                        if (!args[2].equals("--"))
+                            System.out.println("Incorrect operands.");
                         Repository.checkoutCommit(args[1], args[3]);
                     }
                 }
@@ -78,12 +81,14 @@ public class Main {
                 }
                 case "reset" -> {
                     r.exists();
-                    if (args.length != 2) Utils.exit("Enter a commit id to move to.");
+                    if (args.length != 2)
+                        Utils.exit("Enter a commit id to move to.");
                     r.reset(args[1]);
                 }
                 case "merge" -> {
                     r.exists();
-                    if (args.length != 2) Utils.exit("Enter a branch to merge.");
+                    if (args.length != 2)
+                        Utils.exit("Enter a branch to merge.");
                     r.merge(args[1]);
                 }
                 case "add-remote" -> {

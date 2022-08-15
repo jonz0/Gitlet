@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents a gitlet staging object.
- * Commits are hashed using message, parents, tracked, and timestamp.
+ * Represents a gitlet staging object. Commits are hashed using message,
+ * parents, tracked, and timestamp.
  *
  * @author Jonathan Lu
  */
@@ -46,7 +46,7 @@ public class Staging implements Serializable {
     }
 
     /**
-     * Attaches a file to the staging area and returns true if the staging area changes.
+     * Attaches a file to the staging area and returns true if it changes.
      */
     public void add(File file) {
         Blob blob = new Blob(file);
@@ -76,7 +76,7 @@ public class Staging implements Serializable {
     }
 
     /**
-     * Removes file from the staging area and returns true if the staging area changes.
+     * Removes file from the staging area and returns true if it changes.
      */
     public void remove(File file) {
         String filePath = file.getPath();
@@ -123,7 +123,7 @@ public class Staging implements Serializable {
     }
 
     /**
-     * Saves the current staging object to the Staging file.
+     * Saves the current staging object to the staging file.
      */
     public void save() {
         Utils.writeObject(Repository.STAGING_FILE, this);

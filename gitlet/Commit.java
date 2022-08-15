@@ -20,7 +20,7 @@ public class Commit implements Serializable {
     private final String timestamp;
     private final List<String> parents;
     private final String branch;
-    //Tracked: key is the filepath, and value is the ID of the associated blob object.
+    // Tracked: key is the filepath, value is the ID of the associated blob object.
     private final Map<String, String> tracked;
     /**
      * Depth used for the merge command,where the shared node of highest depth
@@ -30,13 +30,12 @@ public class Commit implements Serializable {
     private String id;
     private File commitPath = null;
 
-
     /**
      * Creates the commit object.
      * If parents and tracked are null, creates the initial commit.
      */
     public Commit(String message, List<String> parents, Map<String, String> tracked,
-                  String timestamp, int depth, String branch) {
+            String timestamp, int depth, String branch) {
         this.message = message;
         this.timestamp = timestamp;
         this.depth = depth;

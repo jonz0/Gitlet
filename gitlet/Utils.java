@@ -18,7 +18,6 @@ public class Utils {
     // The length of a complete SHA-1 UID as a hexadecimal numeral.
     static final int UID_LENGTH = 40;
 
-
     /* SHA-1 HASH VALUES */
 
     /**
@@ -48,13 +47,11 @@ public class Utils {
         }
     }
 
-
     /* READING AND WRITING FILE CONTENTS */
 
     /**
-     * Return the entire contents of FILE as a byte array.  FILE must
-     * be a normal file.  Throws IllegalArgumentException
-     * in case of problems.
+     * Return the entire contents of FILE as a byte array. FILE must be a normal
+     * file. Throws IllegalArgumentException in case of problems.
      */
     static byte[] readContents(File file) {
         if (!file.isFile()) {
@@ -68,27 +65,24 @@ public class Utils {
     }
 
     /**
-     * Return the entire contents of FILE as a String.  FILE must
-     * be a normal file.  Throws IllegalArgumentException
-     * in case of problems.
+     * Return the entire contents of FILE as a String. FILE must be a normal file.
+     * Throws IllegalArgumentException in case of problems.
      */
     static String readContentsAsString(File file) {
         return new String(readContents(file), StandardCharsets.UTF_8);
     }
 
     /**
-     * Write the result of concatenating the bytes in CONTENTS to FILE,
-     * creating or overwriting it as needed.  Each object in CONTENTS may be
-     * either a String or a byte array.  Throws IllegalArgumentException
-     * in case of problems.
+     * Write the result of concatenating the bytes in CONTENTS to FILE, creating or
+     * overwriting it as needed. Each object in CONTENTS may be either a String or a
+     * byte array. Throws IllegalArgumentException in case of problems.
      */
     static void writeContents(File file, Object... contents) {
         try {
             if (file.isDirectory()) {
                 throw new IllegalArgumentException("cannot overwrite directory");
             }
-            BufferedOutputStream str =
-                    new BufferedOutputStream(Files.newOutputStream(file.toPath()));
+            BufferedOutputStream str = new BufferedOutputStream(Files.newOutputStream(file.toPath()));
             for (Object obj : contents) {
                 if (obj instanceof byte[]) {
                     str.write((byte[]) obj);
@@ -107,7 +101,7 @@ public class Utils {
      * Returns null in case of problems.
      */
     static <T extends Serializable> T readObject(File file,
-                                                 Class<T> expectedClass) {
+            Class<T> expectedClass) {
         try {
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
             T result = expectedClass.cast(in.readObject());
@@ -126,25 +120,22 @@ public class Utils {
         writeContents(file, (Object) serialize(obj));
     }
 
-
     /* DIRECTORIES */
 
     /**
      * Filter out all but plain files.
      */
-    private static final FilenameFilter PLAIN_FILES =
-            (dir, name) -> new File(dir, name).isFile();
+    private static final FilenameFilter PLAIN_FILES = (dir, name) -> new File(dir, name).isFile();
 
     /**
      * Filter out all but directories.
      */
-    private static final FilenameFilter DIRECTORIES =
-            (dir, name) -> new File(dir, name).isDirectory();
+    private static final FilenameFilter DIRECTORIES = (dir, name) -> new File(dir, name).isDirectory();
 
     /**
      * Returns a list of the names of all plain files in the directory DIR, in
-     * lexicographic order as Java Strings. Returns null if DIR does
-     * not denote a directory.
+     * lexicographic order as Java Strings. Returns null if DIR does not denote a
+     * directory.
      */
     static List<String> plainFilenamesIn(File dir) {
         String[] files = dir.list(PLAIN_FILES);
@@ -158,8 +149,8 @@ public class Utils {
 
     /**
      * Returns a list of the names of all directories in the directory DIR, in
-     * lexicographic order as Java Strings. Returns null if DIR does
-     * not denote a directory.
+     * lexicographic order as Java Strings. Returns null if DIR does not denote a
+     * directory.
      */
     static List<String> directoriesIn(File dir) {
         String[] files = dir.list(DIRECTORIES);
@@ -178,7 +169,6 @@ public class Utils {
         return Paths.get(first.getPath(), others).toFile();
     }
 
-
     /* SERIALIZATION UTILITIES */
 
     /**
@@ -195,7 +185,6 @@ public class Utils {
             throw error("Internal error serializing commit.");
         }
     }
-
 
     /* MESSAGES AND ERROR REPORTING */
 
@@ -215,12 +204,11 @@ public class Utils {
         System.exit(0);
     }
 
-
     /* GITLET COMMAND UTILS */
 
     /**
      * Returns an instance of the filename or an instance of join(CWD, file)
-     * In gitlet, Used to reference the contents of a file.
+     * In gitlet, used to reference the contents of a file.
      */
     static File getFile(String file) {
         if (Paths.get(file).isAbsolute()) {
@@ -316,9 +304,10 @@ public class Utils {
     }
 
     /**
-     * Returns a Map where the keys are all ancestor commits of the given commit, and
-     * their values are the depth from the initial commit. The depth will be used to
-     * find the latest common ancestor (ancestor with greatest depth) of two commits.
+     * Returns a Map where the keys are all ancestor commits of the given commit,
+     * and their values are the depth from the initial commit. The depth will be
+     * used to find the latest common ancestor (ancestor with greatest depth) of two
+     * commits.
      */
     static Map<String, Integer> getAncestorsDepths(Commit c) {
         Map<String, Integer> m = new HashMap<>();
@@ -359,7 +348,7 @@ public class Utils {
         Map<String, Integer> commonAncestors = new HashMap<>();
         Commit currentCommit = c;
         while (true) {
-            // if a shared Commit node is visited, put it in the returned map.
+            // If a shared Commit node is visited, put it in the returned map.
             // No need to iterate through its ancestors.
             assert currentCommit != null;
             if (iterated.containsKey(currentCommit.getId())) {
@@ -390,8 +379,7 @@ public class Utils {
      */
     static String latestCommonAncestor(Map<String, Integer> commonAncestorsDepths) {
         // Moves the commonAncestorsDepths HashMap to a sortable list.
-        List<Map.Entry<String, Integer>> sortedList =
-                new ArrayList<>(commonAncestorsDepths.entrySet());
+        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(commonAncestorsDepths.entrySet());
 
         // Sorts the list by values in descending order.
         // Modifies the Collections.sort Compare function using its Comparator.
@@ -437,9 +425,9 @@ public class Utils {
     }
 
     /**
-     * Handler for checkout: restores tracked files, deletes untracked files, clears the
-     * staging area, and points the tracked map to tracked files in the given commit.
-     * Saves the staging area and sets the branch head to the given commit.
+     * Handler for checkout: restores tracked files, deletes untracked files, clears
+     * the staging area, and points the tracked map to tracked files in the given
+     * commit. Saves the staging area and sets the branch head to the given commit.
      */
     static void checkoutProcesses(Commit c, Staging s) {
         c.restoreTrackedFiles();
@@ -460,7 +448,7 @@ public class Utils {
         Commit currentCommit = c;
 
         while (true) {
-            // if a Commit node was visited, no need to iterate through its ancestors.
+            // If a Commit node was visited, no need to iterate through its ancestors.
             assert currentCommit != null;
             if (s.contains(currentCommit)) {
                 break;
@@ -473,7 +461,7 @@ public class Utils {
             if (commitParents.isEmpty()) {
                 break;
             }
-            // if the Commit node has 2 parents, add the ancestors of its second parent.
+            // If the Commit node has 2 parents, add the ancestors of its second parent.
             if (commitParents.size() > 1) {
                 String secondParentId = commitParents.get(1);
                 Commit secondParent = Commit.getCommit(secondParentId, gitletDir);

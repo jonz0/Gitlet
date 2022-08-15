@@ -41,8 +41,7 @@ public class Repository {
     /**
      * Takes the version of the file as it exists in the commit with the given id,
      * and puts it in the working directory, overwriting the version of the file
-     * that’s
-     * already there if there is one. The new version of the file is not staged.
+     * there if it exists. The new version of the file is not staged.
      */
     public static void checkoutCommit(String commitId, String name) {
         overFiveCharacters(commitId);
@@ -171,11 +170,9 @@ public class Repository {
 
     /**
      * Creates a new branch with the given name, and points it at the current head
-     * commit.
-     * A branch is nothing more than a name for a reference (a SHA-1 identifier) to
-     * a
-     * commit node. This command does NOT immediately switch to the newly created
-     * branch
+     * commit. A branch is nothing more than a name for a reference (a SHA-1
+     * identifier) to a commit node. This command does NOT immediately switch to the
+     * newly created branch.
      */
     public void branch(String name) {
         Branch b = new Branch(name, Commit.getCommit(readContentsAsString(HEAD), GITLET_DIR));
@@ -189,8 +186,7 @@ public class Repository {
     /**
      * Takes all files in the commit at the head of the given branch, and puts them
      * in the working directory, overwriting the versions of the files that are
-     * already
-     * there if they exist. The given branch is set as the active branch.
+     * already there if they exist. The given branch is set as the active branch.
      */
     public void checkoutBranch(String name) {
         File branchFile = join(Repository.BRANCHES_DIR, name);
@@ -324,8 +320,7 @@ public class Repository {
             }
             /*
              * If the CWD file's blob has a different id than the tracked blob id, then it
-             * also
-             * has different contents and is appended to the status..
+             * also has different contents and is appended to the status..
              */
             assert trackedBlob != null;
             if (!cwdBlob.getId().equals(trackedBlob.getId())) {
@@ -353,8 +348,7 @@ public class Repository {
 
     /**
      * Checks out all files tracked by the given commit, removes files not present
-     * in the commit,
-     * and moves the current branch head to the commit node.
+     * in the commit, and moves the current branch head to the commit node.
      */
     public void reset(String commitId) {
         overFiveCharacters(commitId);
@@ -618,8 +612,7 @@ public class Repository {
     /* OTHER HELPER METHODS */
 
     /**
-     * Checks if the initial Gitlet directory does not exist. Prints an error
-     * message.
+     * Checks if the initial Gitlet directory does not exist.
      */
     public void exists() {
         if (!GITLET_DIR.exists()) {
